@@ -1,0 +1,139 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="Feedback de Luis">
+  <div class="hero" style="min-height: 38vh; background-image: url('https://images.unsplash.com/photo-1533130061792-64b345e4a833?auto=format&fit=crop&w=1800&q=80');">
+    <div class="hero-content">
+      <span class="eyebrow">Tu opinión</span>
+      <h1>Feedback de Luis</h1>
+      <p class="lede">Este es tu espacio para pedir cambios sobre el sitio, desde el diseño hasta el contenido.</p>
+    </div>
+  </div>
+
+  <section>
+    <div class="explainer-banner">
+      <h3>💬 ¿Para qué es esta página?</h3>
+      <p>A medida que construyamos el sitio y las demás páginas vayan tomando forma, aquí es donde nos dices qué te gusta y qué cambiarías — para asegurarnos de que quedes conforme con todo antes de publicarlo.</p>
+      <p>Puede ser cualquier cosa: desde detalles de <strong>diseño</strong> (colores, tipografía, fotos, cómo se ve en tu celular) hasta el <strong>contenido escrito</strong> de cada página (algo que no suena como tú, información que falta o está mal, un tour que hay que corregir).</p>
+      <p>No hace falta ser técnico ni específico — con que nos cuentes qué no te convence, nosotros nos encargamos de encontrar la solución.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Diseño y apariencia</h2>
+    <p>¿Los colores, la tipografía o el estilo general del sitio te representan? Este es el lugar para decirlo.</p>
+
+    <div class="editable-box" data-field="diseno_colores">
+      <div class="prompt-q">¿Qué opinas de los colores del sitio?</div>
+      <div class="prompt-hint">Ej: "Me gustan los tonos tierra, pero preferiría más azul, como el cielo de los Andes."</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+
+    <div class="editable-box" data-field="diseno_fuentes">
+      <div class="prompt-q">¿Qué opinas de las fuentes y el estilo del texto?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+
+    <div class="editable-box" data-field="diseno_general">
+      <div class="prompt-q">¿Algo más sobre el diseño general — layout, botones, fotos, cómo se ve en tu celular?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Contenido por página</h2>
+    <p>Si algo escrito en una página específica no te convence o falta información, cuéntanos aquí.</p>
+
+    <div class="editable-box" data-field="contenido_inicio">
+      <div class="prompt-q">Página de Inicio</div>
+      <textarea placeholder="Escribe tu feedback sobre esta página..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+
+    <div class="editable-box" data-field="contenido_nosotros">
+      <div class="prompt-q">Página de Nosotros (tu historia)</div>
+      <textarea placeholder="Escribe tu feedback sobre esta página..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+
+    <div class="editable-box" data-field="contenido_filosofia">
+      <div class="prompt-q">Página de Filosofía</div>
+      <textarea placeholder="Escribe tu feedback sobre esta página..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+
+    <div class="editable-box" data-field="contenido_tours">
+      <div class="prompt-q">Página de Tours (catálogo y tours individuales)</div>
+      <textarea placeholder="Escribe tu feedback sobre esta página..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+
+    <div class="editable-box" data-field="contenido_contacto">
+      <div class="prompt-q">Página de Contacto</div>
+      <textarea placeholder="Escribe tu feedback sobre esta página..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>¿Algo más?</h2>
+    <div class="editable-box" data-field="general" style="border-color: var(--clay);">
+      <div class="prompt-q">Cualquier otra cosa que quieras pedir o corregir</div>
+      <div class="prompt-hint">No hay pregunta demasiado pequeña ni demasiado grande — desde "cambia esta palabra" hasta "reorganicemos toda la página."</div>
+      <textarea placeholder="Escribe aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const API = 'https://quechua-aventuras.dstevo191.workers.dev';
+  const PAGE = 'feedback';
+
+  async function loadContent() {
+    try {
+      const res = await fetch(`${API}/api/get-content?page=${PAGE}`);
+      const result = await res.json();
+      if (result.success) {
+        document.querySelectorAll('.editable-box').forEach((box) => {
+          const field = box.getAttribute('data-field');
+          const textarea = box.querySelector('textarea') as HTMLTextAreaElement;
+          if (field && result.data[field]) textarea.value = result.data[field];
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  document.querySelectorAll('.editable-box').forEach((box) => {
+    const field = box.getAttribute('data-field');
+    const textarea = box.querySelector('textarea') as HTMLTextAreaElement;
+    const btn = box.querySelector('.btn-save') as HTMLButtonElement;
+    const status = box.querySelector('.save-status') as HTMLElement;
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      status.textContent = 'Guardando...';
+      try {
+        const res = await fetch(`${API}/api/save-content`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ page: PAGE, field, value: textarea.value }),
+        });
+        const result = await res.json();
+        status.textContent = result.success ? '✓ Guardado' : 'Error al guardar';
+        setTimeout(() => (status.textContent = ''), 3000);
+      } catch {
+        status.textContent = 'Error al guardar';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+
+  loadContent();
+</script>

@@ -5,6 +5,9 @@ import {
   handleSubmitTour,
   handleGetTours,
   handleDeleteTour,
+  handleUploadPhoto,
+  handleGetPhotos,
+  handleDeletePhoto,
 } from './site-data-handler';
 
 export interface Env {
@@ -65,6 +68,18 @@ export default {
 
     if (pathname === '/api/delete-tour' && request.method === 'POST') {
       return withCors(await handleDeleteTour(request, env));
+    }
+
+    if (pathname === '/api/upload-photo' && request.method === 'POST') {
+      return withCors(await handleUploadPhoto(request, env));
+    }
+
+    if (pathname === '/api/photos' && request.method === 'GET') {
+      return withCors(await handleGetPhotos(request, env));
+    }
+
+    if (pathname === '/api/delete-photo' && request.method === 'POST') {
+      return withCors(await handleDeletePhoto(request, env));
     }
 
     if (pathname === '/health') {

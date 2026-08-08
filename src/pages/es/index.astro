@@ -135,6 +135,38 @@ import Base from '../../layouts/Base.astro';
 
   <section>
     <div class="section-head">
+      <span class="eyebrow">Tus fotos</span>
+      <h2>Sube tus fotos</h2>
+    </div>
+    <p>Las fotos son de lo más importante del sitio — ayudan a que los clientes confíen en ti antes de conocerte. Sube lo que tengas a mano ahora; siempre puedes agregar más adelante.</p>
+
+    <h3>Fotos tuyas en tus aventuras</h3>
+    <div class="photo-upload" data-photo-page="home-luis">
+      <div class="prompt-hint">Fotos tuyas guiando, en la montaña, con clientes — lo que muestre quién eres como guía.</div>
+      <div class="photo-upload-controls">
+        <input type="file" class="photo-file-input" accept="image/*" multiple />
+        <input type="text" class="photo-caption-input" placeholder="Descripción breve (opcional)" />
+        <button type="button" class="btn-upload">Subir foto(s)</button>
+      </div>
+      <div class="photo-status" style="margin-bottom:0.75rem;font-weight:600;"></div>
+      <div class="photo-grid"><p class="photo-empty">Cargando...</p></div>
+    </div>
+
+    <h3>Tus fotos favoritas para el sitio</h3>
+    <div class="photo-upload" data-photo-page="home-favorites">
+      <div class="prompt-hint">Paisajes, rutas, momentos con clientes — cualquier foto que te encantaría ver en el sitio, aunque no salgas tú.</div>
+      <div class="photo-upload-controls">
+        <input type="file" class="photo-file-input" accept="image/*" multiple />
+        <input type="text" class="photo-caption-input" placeholder="Descripción breve (opcional)" />
+        <button type="button" class="btn-upload">Subir foto(s)</button>
+      </div>
+      <div class="photo-status" style="margin-bottom:0.75rem;font-weight:600;"></div>
+      <div class="photo-grid"><p class="photo-empty">Cargando...</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
       <span class="eyebrow">Importante</span>
       <h2>¿Algo no encaja con tu negocio?</h2>
     </div>
@@ -210,4 +242,84 @@ import Base from '../../layouts/Base.astro';
 
   loadGeneral();
   wireSave();
+
+  // ---- Photo upload widgets ----
+  function escapeHtml(s: string): string {
+    return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+  }
+
+  function initPhotoUpload(container: HTMLElement) {
+    const page = container.getAttribute('data-photo-page')!;
+    const fileInput = container.querySelector('.photo-file-input') as HTMLInputElement;
+    const captionInput = container.querySelector('.photo-caption-input') as HTMLInputElement;
+    const uploadBtn = container.querySelector('.btn-upload') as HTMLButtonElement;
+    const status = container.querySelector('.photo-status') as HTMLElement;
+    const grid = container.querySelector('.photo-grid') as HTMLElement;
+
+    async function loadPhotos() {
+      try {
+        const res = await fetch(`${API}/api/photos?page=${page}`);
+        const result = await res.json();
+        if (result.success && result.photos.length) {
+          grid.innerHTML = result.photos.map((p: any) => `
+            <div class="photo-thumb" data-id="${p.id}">
+              <img src="${p.dataUrl}" alt="${escapeHtml(p.caption || '')}" />
+              ${p.caption ? `<div class="photo-caption">${escapeHtml(p.caption)}</div>` : ''}
+              <button type="button" class="photo-remove" data-id="${p.id}" aria-label="Eliminar">×</button>
+            </div>`).join('');
+          grid.querySelectorAll('.photo-remove').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+              const id = btn.getAttribute('data-id')!;
+              await fetch(`${API}/api/delete-photo`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ page, id }),
+              });
+              loadPhotos();
+            });
+          });
+        } else {
+          grid.innerHTML = '<p class="photo-empty">Todavía no hay fotos aquí.</p>';
+        }
+      } catch {
+        grid.innerHTML = '<p class="photo-empty">No se pudieron cargar las fotos.</p>';
+      }
+    }
+
+    uploadBtn.addEventListener('click', async () => {
+      const files = fileInput.files;
+      if (!files || files.length === 0) {
+        status.style.color = 'var(--clay)';
+        status.textContent = 'Elige al menos una foto primero.';
+        return;
+      }
+      uploadBtn.disabled = true;
+      status.style.color = 'var(--forest)';
+      status.textContent = 'Subiendo...';
+      let okCount = 0;
+      for (const file of Array.from(files)) {
+        const fd = new FormData();
+        fd.append('page', page);
+        fd.append('caption', captionInput.value || '');
+        fd.append('file', file);
+        try {
+          const res = await fetch(`${API}/api/upload-photo`, { method: 'POST', body: fd });
+          const result = await res.json();
+          if (result.success) okCount++;
+        } catch {
+          // continue with remaining files
+        }
+      }
+      status.textContent = okCount === files.length ? `✓ ${okCount} foto(s) subida(s)` : `Se subieron ${okCount} de ${files.length} foto(s)`;
+      fileInput.value = '';
+      captionInput.value = '';
+      uploadBtn.disabled = false;
+      loadPhotos();
+      setTimeout(() => (status.textContent = ''), 4000);
+    });
+
+    loadPhotos();
+  }
+
+  document.querySelectorAll('.photo-upload').forEach((el) => initPhotoUpload(el as HTMLElement));
 </script>

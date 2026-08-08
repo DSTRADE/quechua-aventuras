@@ -63,6 +63,7 @@ interface EnrichedTour extends TourSubmission {
   bestSeason: string;
   highlights: string[];
   itinerary: { day: number; title: string; detail: string }[];
+  photos: string[];
   createdAt: string;
   aiGenerated: boolean;
 }
@@ -155,6 +156,13 @@ export async function handleSubmitTour(request: Request, env: Env): Promise<Resp
 
     const slug = slugify(`${submission.name}-${submission.countries.join('-')}`);
 
+    const photoFiles = formData.getAll('photos').filter((p): p is File => p instanceof File && p.size > 0);
+    const photos: string[] = [];
+    for (const file of photoFiles.slice(0, 8)) {
+      if (file.size > MAX_PHOTO_BYTES) continue;
+      photos.push(await fileToDataUrl(file));
+    }
+
     let enrichment: Partial<EnrichedTour> = {};
     let aiGenerated = false;
     try {
@@ -176,6 +184,7 @@ export async function handleSubmitTour(request: Request, env: Env): Promise<Resp
       bestSeason: enrichment.bestSeason || 'Por confirmar',
       highlights: enrichment.highlights || [],
       itinerary: enrichment.itinerary || [],
+      photos,
       createdAt: new Date().toISOString(),
       aiGenerated,
     };
@@ -211,6 +220,102 @@ export async function handleGetTours(_request: Request, env: Env): Promise<Respo
   } catch (e) {
     console.error('get-tours error', e);
     return json({ success: false, message: 'Error al cargar tours' }, 500);
+  }
+}
+
+// ---------- Photo uploads (Luis's photos + tour photos) ----------
+
+const MAX_PHOTO_BYTES = 6 * 1024 * 1024; // 6MB per photo
+
+function genId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+async function fileToDataUrl(file: File): Promise<string> {
+  const buf = await file.arrayBuffer();
+  let binary = '';
+  const bytes = new Uint8Array(buf);
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  const base64 = btoa(binary);
+  return `data:${file.type || 'image/jpeg'};base64,${base64}`;
+}
+
+export async function handleUploadPhoto(request: Request, env: Env): Promise<Response> {
+  try {
+    const formData = await request.formData();
+    const page = (formData.get('page') as string) || '';
+    const caption = (formData.get('caption') as string) || '';
+    const file = formData.get('file') as File | null;
+
+    if (!page || !file) {
+      return json({ success: false, message: 'Falta la página o el archivo' }, 400);
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      return json({ success: false, message: 'La foto es demasiado grande (máx. 6MB)' }, 400);
+    }
+
+    const id = genId();
+    const dataUrl = await fileToDataUrl(file);
+    const photo = {
+      id,
+      page,
+      caption,
+      filename: file.name,
+      dataUrl,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    await env.SITE_DATA.put(`photo:${page}:${id}`, JSON.stringify(photo));
+
+    const indexKey = `photos:${page}:index`;
+    const indexRaw = await env.SITE_DATA.get(indexKey);
+    const index: string[] = indexRaw ? JSON.parse(indexRaw) : [];
+    index.push(id);
+    await env.SITE_DATA.put(indexKey, JSON.stringify(index));
+
+    return json({ success: true, photo });
+  } catch (e) {
+    console.error('upload-photo error', e);
+    return json({ success: false, message: 'Error al subir la foto' }, 500);
+  }
+}
+
+export async function handleGetPhotos(request: Request, env: Env): Promise<Response> {
+  try {
+    const url = new URL(request.url);
+    const page = url.searchParams.get('page');
+    if (!page) return json({ success: false, message: 'Falta la página' }, 400);
+
+    const indexRaw = await env.SITE_DATA.get(`photos:${page}:index`);
+    const index: string[] = indexRaw ? JSON.parse(indexRaw) : [];
+    const photos = [];
+    for (const id of index) {
+      const raw = await env.SITE_DATA.get(`photo:${page}:${id}`);
+      if (raw) photos.push(JSON.parse(raw));
+    }
+    photos.sort((a, b) => (a.uploadedAt < b.uploadedAt ? 1 : -1));
+    return json({ success: true, photos });
+  } catch (e) {
+    console.error('get-photos error', e);
+    return json({ success: false, message: 'Error al cargar fotos' }, 500);
+  }
+}
+
+export async function handleDeletePhoto(request: Request, env: Env): Promise<Response> {
+  try {
+    const body = await request.json<{ page: string; id: string }>();
+    if (!body.page || !body.id) return json({ success: false, message: 'Faltan datos' }, 400);
+
+    await env.SITE_DATA.delete(`photo:${body.page}:${body.id}`);
+    const indexKey = `photos:${body.page}:index`;
+    const indexRaw = await env.SITE_DATA.get(indexKey);
+    const index: string[] = indexRaw ? JSON.parse(indexRaw) : [];
+    await env.SITE_DATA.put(indexKey, JSON.stringify(index.filter((i) => i !== body.id)));
+
+    return json({ success: true });
+  } catch (e) {
+    console.error('delete-photo error', e);
+    return json({ success: false, message: 'Error al eliminar la foto' }, 500);
   }
 }
 

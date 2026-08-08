@@ -414,6 +414,99 @@ section { margin-bottom: 3.5rem; }
 .btn-save:hover { background: var(--forest-dark); }
 .btn-save:disabled { opacity: 0.6; cursor: default; }
 
+/* ---------- Photo upload ---------- */
+.photo-upload {
+  background: white;
+  border: 1.5px dashed var(--gold);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin: 1.25rem 0 1.75rem;
+}
+
+.photo-upload .prompt-hint { color: var(--stone); font-size: 0.9rem; margin-bottom: 1rem; }
+
+.photo-upload-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.photo-upload-controls input[type="file"] {
+  flex: 1 1 220px;
+  padding: 0.6rem 0.75rem;
+}
+
+.photo-upload-controls input[type="text"] {
+  flex: 1 1 220px;
+}
+
+.btn-upload {
+  background: var(--forest);
+  color: white;
+  border: none;
+  padding: 0.7rem 1.4rem;
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.btn-upload:hover { background: var(--forest-dark); }
+.btn-upload:disabled { opacity: 0.6; cursor: default; }
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.9rem;
+}
+
+.photo-thumb {
+  position: relative;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  aspect-ratio: 1 / 1;
+  background: var(--cream-2);
+}
+
+.photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-thumb .photo-caption {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  background: linear-gradient(0deg, rgba(20,40,34,0.85) 0%, transparent 100%);
+  color: white;
+  font-size: 0.72rem;
+  padding: 1.1rem 0.5rem 0.4rem;
+}
+
+.photo-thumb .photo-remove {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: rgba(36, 28, 21, 0.65);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.photo-thumb .photo-remove:hover { background: var(--clay); }
+
+.photo-empty { color: var(--stone); font-size: 0.9rem; }
+
 .explainer-banner {
   background: linear-gradient(135deg, var(--forest) 0%, var(--forest-dark) 100%);
   color: white;

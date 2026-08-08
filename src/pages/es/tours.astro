@@ -49,6 +49,10 @@ import Base from '../../layouts/Base.astro';
       <label for="notes">Notas adicionales (opcional)</label>
       <textarea id="notes" name="notes" placeholder="Cualquier detalle que quieras que tengamos en cuenta — o deja en blanco y lo investigamos por ti."></textarea>
 
+      <label for="photos">Fotos del tour (opcional)</label>
+      <input type="file" id="photos" name="photos" accept="image/*" multiple />
+      <div class="prompt-hint" style="margin-top: 0.4rem;">No hace falta tenerlas ahora — puedes agregar el tour sin fotos y subirlas más adelante, no las necesitamos para armar la página.</div>
+
       <button type="submit" id="submit-btn">Agregar tour con ayuda de IA</button>
     </form>
     <div id="tour-form-status" style="margin-top: 1rem; font-weight: 600;"></div>
@@ -148,8 +152,10 @@ import Base from '../../layouts/Base.astro';
   function tourCard(tour: any): string {
     const countries: string[] = tour.countries || [];
     const multi = countries.length > 1;
+    const cover = tour.photos && tour.photos.length ? tour.photos[0] : null;
     return `
       <div class="card">
+        ${cover ? `<div class="card-image-wrap"><img src="${cover}" class="card-image" alt="${tour.name}" /></div>` : ''}
         <div class="card-content">
           <h3 class="card-title">${tour.name}${multi ? ' <span class="pill pill-gold" style="vertical-align:middle;">🌎 multi-país</span>' : ''}</h3>
           <p class="card-text">${(tour.description || '').slice(0, 140)}${tour.description && tour.description.length > 140 ? '…' : ''}</p>

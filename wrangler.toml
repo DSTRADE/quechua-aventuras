@@ -2,16 +2,19 @@ name = "quechua-aventuras"
 compatibility_date = "2026-08-08"
 main = "src/worker/index.ts"
 
+[env.production]
+name = "quechua-aventuras"
+
+# Automatic static file serving configuration
 [site]
 bucket = "dist"
 
-# Contact config
+# KV Namespaces
 [[kv_namespaces]]
 binding = "CONTACT_CONFIG"
 id = "ea2e80fcfdeb42339380eec946960a90"
 preview_id = "ea2e80fcfdeb42339380eec946960a90"
 
-# Static content (for serving HTML files)
 [[kv_namespaces]]
 binding = "__STATIC_CONTENT"
 id = "ea2e80fcfdeb42339380eec946960a90"
@@ -20,3 +23,4 @@ preview_id = "ea2e80fcfdeb42339380eec946960a90"
 [build]
 command = "npm run build"
 cwd = "./"
+watch_paths = ["src/**/*.{astro,ts}"]

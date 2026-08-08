@@ -474,7 +474,7 @@ async function setVoiceNoteStatus(env: Env, id: string, status: string, revision
 
 export async function handleSaveVoiceNote(request: Request, env: Env): Promise<Response> {
   try {
-    const body = await request.json<{ transcript: string; audioDataUrl?: string }>();
+    const body = await request.json<{ transcript: string }>();
     if (!body.transcript || !body.transcript.trim()) {
       return json({ success: false, message: 'Falta el texto de la nota' }, 400);
     }
@@ -486,10 +486,11 @@ export async function handleSaveVoiceNote(request: Request, env: Env): Promise<R
       console.error('generate-suggested-changes failed', e);
     }
 
+    // Deliberately not keeping the audio itself — just a quick text record
+    // (transcript + AI-suggested changes) for the notification email.
     const note = {
       id: genId(),
       transcript: body.transcript.trim(),
-      audioDataUrl: body.audioDataUrl || null,
       suggestedChanges,
       status: 'pending', // pending | approved | needs-revision
       revisionNote: null as string | null,

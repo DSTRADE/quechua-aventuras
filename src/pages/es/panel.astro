@@ -45,10 +45,6 @@ import Base from '../../layouts/Base.astro';
       </div>
       <div id="voice-status" style="margin-top:0.75rem;font-weight:600;"></div>
     </div>
-
-    <div id="voice-notes-list" class="voice-notes-list" style="margin-top:1.5rem;">
-      <p class="photo-empty">Cargando notas de voz...</p>
-    </div>
   </section>
 
   <section id="estado">
@@ -186,10 +182,6 @@ import Base from '../../layouts/Base.astro';
 <script>
   const API = 'https://quechua-aventuras.dstevo191.workers.dev';
   const PAGE = 'feedback';
-
-  function escapeHtml(s: string): string {
-    return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
-  }
 
   async function loadContent() {
     try {
@@ -468,8 +460,9 @@ import Base from '../../layouts/Base.astro';
 
   // ---- Voice notes ----
   // Kept deliberately simple for Luis on mobile: tap, talk, tap again, done.
-  // No transcript review step and no approve/status controls here — that
-  // review happens on the developer's side via the links in the notification email.
+  // No transcript review, no saved list, no audio kept on the site — just a
+  // quick record (transcript + AI-suggested changes) and a thank-you. All
+  // review happens on the developer's side via the notification email.
   const recordBtn = document.getElementById('voice-record-btn') as HTMLButtonElement;
   const voiceTimer = document.getElementById('voice-timer')!;
   const voiceStatus = document.getElementById('voice-status')!;
@@ -483,15 +476,6 @@ import Base from '../../layouts/Base.astro';
     const m = Math.floor(s / 60);
     const sec = s % 60;
     return `● ${m}:${sec.toString().padStart(2, '0')}`;
-  }
-
-  function blobToDataUrl(blob: Blob): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
   }
 
   async function startRecording() {
@@ -555,20 +539,18 @@ import Base from '../../layouts/Base.astro';
         return;
       }
 
-      const audioDataUrl = await blobToDataUrl(blob);
       const saveRes = await fetch(`${API}/api/voice-notes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript: result.transcript, audioDataUrl }),
+        body: JSON.stringify({ transcript: result.transcript }),
       });
       const saveResult = await saveRes.json();
       recordBtn.disabled = false;
 
       if (saveResult.success) {
         voiceStatus.style.color = 'var(--forest)';
-        voiceStatus.textContent = '✓ Nota enviada. ¡Gracias!';
+        voiceStatus.textContent = '✓ ¡Gracias! Recibimos tu nota.';
         setTimeout(() => (voiceStatus.textContent = ''), 4000);
-        loadVoiceNotes();
       } else {
         voiceStatus.style.color = 'var(--clay)';
         voiceStatus.textContent = saveResult.message || 'Error al guardar la nota.';
@@ -587,51 +569,4 @@ import Base from '../../layouts/Base.astro';
       startRecording();
     }
   });
-
-  function formatDate(iso: string): string {
-    try {
-      return new Date(iso).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' });
-    } catch {
-      return iso;
-    }
-  }
-
-  async function loadVoiceNotes() {
-    const list = document.getElementById('voice-notes-list')!;
-    try {
-      const res = await fetch(`${API}/api/voice-notes`);
-      const result = await res.json();
-      if (result.success && result.notes.length) {
-        list.innerHTML = result.notes
-          .map(
-            (n: any) => `
-          <div class="voice-note-card" data-id="${n.id}">
-            <div class="voice-note-date">${formatDate(n.createdAt)}</div>
-            <p class="voice-note-text">${escapeHtml(n.transcript)}</p>
-            ${n.audioDataUrl ? `<audio controls src="${n.audioDataUrl}" style="width:100%;"></audio>` : ''}
-            <button type="button" class="voice-note-remove" data-id="${n.id}">Eliminar</button>
-          </div>`
-          )
-          .join('');
-
-        list.querySelectorAll('.voice-note-remove').forEach((btn) => {
-          btn.addEventListener('click', async () => {
-            const id = btn.getAttribute('data-id')!;
-            await fetch(`${API}/api/delete-voice-note`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id }),
-            });
-            loadVoiceNotes();
-          });
-        });
-      } else {
-        list.innerHTML = '<p class="photo-empty">Todavía no hay notas de voz.</p>';
-      }
-    } catch {
-      list.innerHTML = '<p class="photo-empty">No se pudieron cargar las notas de voz.</p>';
-    }
-  }
-
-  loadVoiceNotes();
 </script>

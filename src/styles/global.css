@@ -486,37 +486,6 @@ section { margin-bottom: 3.5rem; }
 }
 #voice-record-btn.recording:hover { background: var(--clay-dark); }
 
-.voice-notes-list { display: flex; flex-direction: column; gap: 1rem; }
-
-.voice-note-card {
-  background: white;
-  border-radius: var(--radius-md);
-  padding: 1.25rem 1.5rem;
-  border: 1px solid rgba(36,28,21,0.06);
-  box-shadow: var(--shadow-sm);
-}
-
-.voice-note-date {
-  font-size: 0.78rem;
-  color: var(--stone);
-  margin-bottom: 0.5rem;
-}
-
-.voice-note-text {
-  color: var(--ink);
-  margin-bottom: 0.75rem;
-}
-
-.voice-note-remove {
-  background: none;
-  border: none;
-  color: var(--stone);
-  font-size: 0.8rem;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
-}
-
 /* ---------- Photo upload ---------- */
 .photo-upload {
   background: white;

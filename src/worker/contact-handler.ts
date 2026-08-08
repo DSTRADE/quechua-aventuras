@@ -34,7 +34,13 @@ export async function sendEmail(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'noreply@quechua-aventuras.com',
+      // TODO: switch to a verified sender on your own domain once one is
+      // set up in Resend (resend.com/domains). Until then, Resend's shared
+      // "onboarding@resend.dev" sender works with zero setup, but Resend
+      // only lets it deliver to the email address on the Resend account
+      // itself — fine for admin notifications, not for customer-facing
+      // contact-form emails once those go live with real customers.
+      from: 'Quechua Aventuras <onboarding@resend.dev>',
       to,
       subject,
       html,

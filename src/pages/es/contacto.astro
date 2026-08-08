@@ -2,6 +2,85 @@
 import Base from '../../layouts/Base.astro';
 ---
 
+<script>
+  // Handle setup contact form
+  const setupForm = document.querySelector('form[action="/api/setup-contact"]') as HTMLFormElement;
+  if (setupForm) {
+    setupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(setupForm);
+
+      try {
+        const response = await fetch('/api/setup-contact', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Update display info
+          const email = formData.get('luisEmail') as string;
+          const whatsapp = formData.get('luisWhatsapp') as string;
+          const phone = formData.get('luisPhone') as string;
+          const location = formData.get('luisLocation') as string;
+
+          document.getElementById('display-email')!.textContent = email || 'No configurado';
+          document.getElementById('display-whatsapp')!.textContent = whatsapp || 'No configurado';
+          document.getElementById('display-phone')!.textContent = phone || 'No configurado';
+          document.getElementById('display-location')!.textContent = location || 'No configurado';
+
+          alert('✓ Tu información de contacto ha sido guardada exitosamente!');
+          setupForm.reset();
+        } else {
+          alert('Error: ' + result.message);
+        }
+      } catch (error) {
+        alert('Error al guardar tu información');
+        console.error(error);
+      }
+    });
+  }
+
+  // Handle customer contact form
+  const contactForm = document.querySelector('form[action="/api/contact"]') as HTMLFormElement;
+  if (contactForm) {
+    contactForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(contactForm);
+      const submitBtn = contactForm.querySelector('button') as HTMLButtonElement;
+      const originalText = submitBtn.textContent;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('✓ Mensaje enviado! Luis te contactará pronto.');
+          contactForm.reset();
+        } else {
+          alert('Error: ' + result.message);
+        }
+      } catch (error) {
+        alert('Error al enviar el mensaje');
+        console.error(error);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+  }
+</script>
+
 <Base title="Contacto">
   <section>
     <h1>Contacto - Comunicate Conmigo</h1>
@@ -13,42 +92,82 @@ import Base from '../../layouts/Base.astro';
       <li><strong>Para ti (Luis):</strong> Aquí es donde me contactas a mí para darme información sobre tus tours o cambios que quieres hacer</li>
     </ul>
 
+    <h2>¿PRIMERO: Dónde Quieres Recibir Mensajes?</h2>
+    <div class="placeholder-note">
+      <strong>📝 IMPORTANTE - Lee esto primero, Luis:</strong>
+      <p>
+        Abajo hay dos formularios. El primero es PARA TI - es donde nos dices dónde quieres recibir
+        los mensajes de tus clientes. El segundo es para que tus CLIENTES te contacten.
+      </p>
+    </div>
+
+    <h3>Formulario de Configuración (Para Luis)</h3>
+    <p>
+      Completa esto PRIMERO para decirle al sitio dónde enviar los mensajes de tus clientes:
+    </p>
+    <form method="POST" action="/api/setup-contact" style="background: #f9f7f4; padding: 2rem; border-radius: 8px; margin-bottom: 3rem;">
+      <label for="luis-email">Tu Email Principal</label>
+      <input type="email" id="luis-email" name="luisEmail" required placeholder="Tu email donde recibirás mensajes" />
+
+      <label for="luis-whatsapp">Tu WhatsApp (opcional)</label>
+      <input type="tel" id="luis-whatsapp" name="luisWhatsapp" placeholder="Tu número de WhatsApp" />
+
+      <label for="luis-phone">Tu Teléfono (opcional)</label>
+      <input type="tel" id="luis-phone" name="luisPhone" placeholder="Tu número de teléfono" />
+
+      <label for="luis-location">Tu Ubicación en Cusco (opcional)</label>
+      <input type="text" id="luis-location" name="luisLocation" placeholder="Ej: Centro de Cusco, Barrio X, etc." />
+
+      <label for="form-destination">¿Dónde quieres recibir los mensajes de los clientes?</label>
+      <select id="form-destination" name="formDestination" required style="width: 100%; padding: 0.75rem; margin-top: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="">Selecciona una opción</option>
+        <option value="email">Por email (te enviaré a tu email principal)</option>
+        <option value="whatsapp">Por WhatsApp (te enviaré mensajes a tu WhatsApp)</option>
+        <option value="both">Ambos (email Y WhatsApp)</option>
+      </select>
+
+      <label for="receiving-email">Si quieres emails, ¿a qué dirección?</label>
+      <input type="email" id="receiving-email" name="receivingEmail" placeholder="Puede ser igual o diferente a tu email principal" />
+
+      <button type="submit">Guardar Mi Información de Contacto</button>
+    </form>
+
+    <hr style="margin: 2rem 0; border: none; border-top: 1px solid #ddd;" />
+
+    <h2>Formulario Para Tus Clientes</h2>
+    <p>
+      Cuando hayas completado el formulario de arriba, tus clientes potenciales podrán usar este formulario
+      para contactarte. Sus mensajes serán recibidos en el lugar que especificaste arriba.
+    </p>
+
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
       <div>
-        <h2>Información de Contacto</h2>
+        <h3>Tu Información de Contacto Actual</h3>
         <div style="background: #f5f5f5; padding: 1.5rem; border-radius: 8px;">
-          <h3>📧 Email</h3>
-          <p>
-            <strong>📝 [PLACEHOLDER]</strong>
-            <br />
-            Responde en 24 horas
+          <h4>📧 Email</h4>
+          <p id="display-email">
+            <em style="color: #999;">Completa el formulario de arriba para mostrar tu email</em>
           </p>
 
-          <h3>📱 WhatsApp</h3>
-          <p>
-            <strong>📝 [PLACEHOLDER]</strong>
-            <br />
-            Disponible de 8am a 8pm (zona horaria Perú)
+          <h4>📱 WhatsApp</h4>
+          <p id="display-whatsapp">
+            <em style="color: #999;">Completa el formulario de arriba para mostrar tu WhatsApp</em>
           </p>
 
-          <h3>📞 Teléfono</h3>
-          <p>
-            <strong>📝 [PLACEHOLDER]</strong>
-            <br />
-            Llamadas durante horario de oficina
+          <h4>📞 Teléfono</h4>
+          <p id="display-phone">
+            <em style="color: #999;">Completa el formulario de arriba para mostrar tu teléfono</em>
           </p>
 
-          <h3>📍 Ubicación</h3>
-          <p>
-            <strong>📝 [PLACEHOLDER]</strong>
-            <br />
-            Cusco, Perú
+          <h4>📍 Ubicación</h4>
+          <p id="display-location">
+            <em style="color: #999;">Completa el formulario de arriba para mostrar tu ubicación</em>
           </p>
         </div>
       </div>
 
       <div>
-        <h2>Formulario de Contacto</h2>
+        <h3>Formulario de Contacto para Clientes</h3>
         <form method="POST" action="/api/contact">
           <label for="name">Nombre</label>
           <input type="text" id="name" name="name" required />
@@ -71,14 +190,9 @@ import Base from '../../layouts/Base.astro';
           <label for="message">Mensaje</label>
           <textarea id="message" name="message" required></textarea>
 
-          <button type="submit">Enviar Mensaje</button>
+          <button type="submit">Enviar Mensaje a Luis</button>
         </form>
       </div>
-    </div>
-
-    <div class="placeholder-note">
-      <strong>📝 Nota para Luis:</strong> Completa tu información de contacto arriba.
-      El formulario te enviará un email con los detalles del cliente.
     </div>
 
     <h2>Horarios de Atención</h2>

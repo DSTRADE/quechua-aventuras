@@ -8,6 +8,9 @@ import {
   handleUploadPhoto,
   handleGetPhotos,
   handleDeletePhoto,
+  handleSubmitTestimonial,
+  handleGetTestimonials,
+  handleDeleteTestimonial,
 } from './site-data-handler';
 
 export interface Env {
@@ -80,6 +83,18 @@ export default {
 
     if (pathname === '/api/delete-photo' && request.method === 'POST') {
       return withCors(await handleDeletePhoto(request, env));
+    }
+
+    if (pathname === '/api/testimonials' && request.method === 'POST') {
+      return withCors(await handleSubmitTestimonial(request, env));
+    }
+
+    if (pathname === '/api/testimonials' && request.method === 'GET') {
+      return withCors(await handleGetTestimonials(request, env));
+    }
+
+    if (pathname === '/api/delete-testimonial' && request.method === 'POST') {
+      return withCors(await handleDeleteTestimonial(request, env));
     }
 
     if (pathname === '/health') {

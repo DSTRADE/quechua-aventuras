@@ -102,6 +102,35 @@ import Base from '../../layouts/Base.astro';
       <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
     </div>
   </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Prueba social</span>
+      <h2>Testimonios de tus clientes</h2>
+    </div>
+    <p>Nada genera más confianza que las palabras de clientes anteriores. Si tienes reseñas de Google, TripAdvisor, WhatsApp o donde sea, pásanoslas aquí — con el nombre de la persona y, si quieres, qué tour hizo.</p>
+
+    <form id="testimonial-form">
+      <label for="t-name">Nombre del cliente</label>
+      <input type="text" id="t-name" name="authorName" required placeholder="Ej: Sarah Thompson" />
+
+      <label for="t-origin">País de origen (opcional)</label>
+      <input type="text" id="t-origin" name="authorOrigin" placeholder="Ej: Reino Unido" />
+
+      <label for="t-tour">Tour que hizo (opcional)</label>
+      <input type="text" id="t-tour" name="tourName" placeholder="Ej: Salkantay Trek" />
+
+      <label for="t-text">Testimonio</label>
+      <textarea id="t-text" name="text" required placeholder="Copia o escribe aquí lo que dijo el cliente..."></textarea>
+
+      <button type="submit" id="testimonial-submit-btn">Agregar testimonio</button>
+    </form>
+    <div id="testimonial-status" style="margin-top: 1rem; font-weight: 600;"></div>
+
+    <div id="testimonial-list" class="card-grid" style="margin-top: 2rem;">
+      <p class="photo-empty">Cargando...</p>
+    </div>
+  </section>
 </Base>
 
 <script>
@@ -159,4 +188,90 @@ import Base from '../../layouts/Base.astro';
 
   loadContent();
   wireSaveButtons();
+
+  // ---- Testimonials ----
+  function escapeHtml(s: string): string {
+    return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+  }
+
+  function testimonialCard(t: any): string {
+    return `
+      <div class="card">
+        <div class="card-content">
+          <p class="card-text" style="font-style: italic;">"${escapeHtml(t.text)}"</p>
+          <div class="card-meta">
+            <strong style="color: var(--forest);">${escapeHtml(t.authorName)}</strong>
+            ${t.authorOrigin ? `<span class="pill">${escapeHtml(t.authorOrigin)}</span>` : ''}
+            ${t.tourName ? `<span class="pill pill-clay">${escapeHtml(t.tourName)}</span>` : ''}
+          </div>
+          <button type="button" class="testimonial-remove" data-id="${t.id}" style="margin-top:0.75rem;background:none;border:none;color:var(--stone);font-size:0.8rem;cursor:pointer;text-decoration:underline;">Eliminar</button>
+        </div>
+      </div>`;
+  }
+
+  async function loadTestimonials() {
+    const list = document.getElementById('testimonial-list')!;
+    try {
+      const res = await fetch(`${API}/api/testimonials`);
+      const result = await res.json();
+      if (result.success && result.testimonials.length) {
+        list.innerHTML = result.testimonials.map(testimonialCard).join('');
+        list.querySelectorAll('.testimonial-remove').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id')!;
+            await fetch(`${API}/api/delete-testimonial`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id }),
+            });
+            loadTestimonials();
+          });
+        });
+      } else {
+        list.innerHTML = '<p class="photo-empty">Todavía no agregaste testimonios.</p>';
+      }
+    } catch {
+      list.innerHTML = '<p class="photo-empty">No se pudieron cargar los testimonios.</p>';
+    }
+  }
+
+  const testimonialForm = document.getElementById('testimonial-form') as HTMLFormElement;
+  const testimonialStatus = document.getElementById('testimonial-status')!;
+  const testimonialBtn = document.getElementById('testimonial-submit-btn') as HTMLButtonElement;
+
+  testimonialForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    testimonialBtn.disabled = true;
+    testimonialStatus.textContent = '';
+    try {
+      const fd = new FormData(testimonialForm);
+      const res = await fetch(`${API}/api/testimonials`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          authorName: fd.get('authorName'),
+          authorOrigin: fd.get('authorOrigin'),
+          tourName: fd.get('tourName'),
+          text: fd.get('text'),
+        }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        testimonialStatus.style.color = 'var(--forest)';
+        testimonialStatus.textContent = '✓ Testimonio agregado';
+        testimonialForm.reset();
+        loadTestimonials();
+      } else {
+        testimonialStatus.style.color = 'var(--clay)';
+        testimonialStatus.textContent = result.message || 'Error al agregar el testimonio';
+      }
+    } catch {
+      testimonialStatus.style.color = 'var(--clay)';
+      testimonialStatus.textContent = 'Error al agregar el testimonio';
+    } finally {
+      testimonialBtn.disabled = false;
+    }
+  });
+
+  loadTestimonials();
 </script>

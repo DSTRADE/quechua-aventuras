@@ -319,6 +319,81 @@ export async function handleDeletePhoto(request: Request, env: Env): Promise<Res
   }
 }
 
+// ---------- Testimonials ----------
+
+interface Testimonial {
+  id: string;
+  authorName: string;
+  authorOrigin?: string;
+  tourName?: string;
+  text: string;
+  createdAt: string;
+}
+
+export async function handleSubmitTestimonial(request: Request, env: Env): Promise<Response> {
+  try {
+    const body = await request.json<{ authorName: string; authorOrigin?: string; tourName?: string; text: string }>();
+    if (!body.authorName || !body.text) {
+      return json({ success: false, message: 'Falta el nombre o el texto del testimonio' }, 400);
+    }
+
+    const testimonial: Testimonial = {
+      id: genId(),
+      authorName: body.authorName,
+      authorOrigin: body.authorOrigin || '',
+      tourName: body.tourName || '',
+      text: body.text,
+      createdAt: new Date().toISOString(),
+    };
+
+    await env.SITE_DATA.put(`testimonial:${testimonial.id}`, JSON.stringify(testimonial));
+
+    const indexRaw = await env.SITE_DATA.get('testimonials:index');
+    const index: string[] = indexRaw ? JSON.parse(indexRaw) : [];
+    index.push(testimonial.id);
+    await env.SITE_DATA.put('testimonials:index', JSON.stringify(index));
+
+    return json({ success: true, testimonial });
+  } catch (e) {
+    console.error('submit-testimonial error', e);
+    return json({ success: false, message: 'Error al guardar el testimonio' }, 500);
+  }
+}
+
+export async function handleGetTestimonials(_request: Request, env: Env): Promise<Response> {
+  try {
+    const indexRaw = await env.SITE_DATA.get('testimonials:index');
+    const index: string[] = indexRaw ? JSON.parse(indexRaw) : [];
+    const testimonials: Testimonial[] = [];
+    for (const id of index) {
+      const raw = await env.SITE_DATA.get(`testimonial:${id}`);
+      if (raw) testimonials.push(JSON.parse(raw));
+    }
+    testimonials.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+    return json({ success: true, testimonials });
+  } catch (e) {
+    console.error('get-testimonials error', e);
+    return json({ success: false, message: 'Error al cargar testimonios' }, 500);
+  }
+}
+
+export async function handleDeleteTestimonial(request: Request, env: Env): Promise<Response> {
+  try {
+    const body = await request.json<{ id: string }>();
+    if (!body.id) return json({ success: false, message: 'Falta el id' }, 400);
+
+    await env.SITE_DATA.delete(`testimonial:${body.id}`);
+    const indexRaw = await env.SITE_DATA.get('testimonials:index');
+    const index: string[] = indexRaw ? JSON.parse(indexRaw) : [];
+    await env.SITE_DATA.put('testimonials:index', JSON.stringify(index.filter((i) => i !== body.id)));
+
+    return json({ success: true });
+  } catch (e) {
+    console.error('delete-testimonial error', e);
+    return json({ success: false, message: 'Error al eliminar el testimonio' }, 500);
+  }
+}
+
 export async function handleDeleteTour(request: Request, env: Env): Promise<Response> {
   try {
     const body = await request.json<{ slug: string }>();

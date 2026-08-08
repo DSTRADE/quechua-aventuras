@@ -21,6 +21,17 @@ import Base from '../../layouts/Base.astro';
   </section>
 
   <section>
+    <div class="section-head">
+      <span class="eyebrow">Progreso</span>
+      <h2>Estado del sitio</h2>
+    </div>
+    <p>Un vistazo rápido a qué falta completar. Se actualiza solo a medida que vas guardando texto, subiendo fotos y agregando tours.</p>
+    <div id="status-checklist" class="status-checklist">
+      <p class="photo-empty">Cargando estado...</p>
+    </div>
+  </section>
+
+  <section>
     <h2>Diseño y apariencia</h2>
     <p>¿Los colores, la tipografía o el estilo general del sitio te representan? Este es el lugar para decirlo.</p>
 
@@ -136,4 +147,119 @@ import Base from '../../layouts/Base.astro';
   });
 
   loadContent();
+
+  // ---- Site status checklist ----
+  interface ChecklistGroup {
+    label: string;
+    kind: 'text' | 'count';
+    page?: string;
+    fields?: { field: string; label: string }[];
+    countLabel?: string;
+    countUrl?: string;
+    countKey?: string;
+  }
+
+  const CHECKLIST: ChecklistGroup[] = [
+    {
+      label: 'Inicio',
+      kind: 'text',
+      page: 'sitio',
+      fields: [{ field: 'general', label: 'Correcciones sobre cómo funciona tu negocio' }],
+    },
+    { label: 'Inicio — fotos tuyas', kind: 'count', countUrl: `${API}/api/photos?page=home-luis`, countKey: 'photos', countLabel: 'foto(s) tuya(s) subida(s)' },
+    { label: 'Inicio — fotos favoritas', kind: 'count', countUrl: `${API}/api/photos?page=home-favorites`, countKey: 'photos', countLabel: 'foto(s) favorita(s) subida(s)' },
+    {
+      label: 'Nosotros (tu historia)',
+      kind: 'text',
+      page: 'nosotros',
+      fields: [
+        { field: 'bio_inicio', label: 'Cómo empezaste como guía' },
+        { field: 'bio_regiones', label: 'Regiones y países donde trabajaste' },
+        { field: 'bio_memorable', label: 'Experiencia más memorable' },
+        { field: 'bio_pasion', label: 'Tu pasión por las montañas' },
+        { field: 'bio_porque', label: 'Por qué creaste el negocio' },
+        { field: 'exp_anos', label: 'Años de experiencia' },
+        { field: 'exp_certificaciones', label: 'Certificaciones' },
+        { field: 'exp_idiomas', label: 'Idiomas que hablas' },
+        { field: 'exp_especialidad', label: 'Especialidades' },
+      ],
+    },
+    { label: 'Nosotros — testimonios', kind: 'count', countUrl: `${API}/api/testimonials`, countKey: 'testimonials', countLabel: 'testimonio(s) agregado(s)' },
+    {
+      label: 'Filosofía',
+      kind: 'text',
+      page: 'negocio',
+      fields: [
+        { field: 'fil_grupos', label: 'Filosofía sobre tamaño de grupos' },
+        { field: 'fil_seguridad', label: 'Cómo aseguras la seguridad' },
+        { field: 'fil_comunidad', label: 'Relación con la comunidad local' },
+        { field: 'fil_ambiente', label: 'Compromiso ambiental' },
+        { field: 'fil_diferente', label: 'Qué te hace diferente' },
+        { field: 'faq_fitness', label: 'FAQ: nivel físico requerido' },
+        { field: 'faq_incluido', label: 'FAQ: qué está incluido' },
+        { field: 'faq_soroche', label: 'FAQ: mal de altura' },
+        { field: 'faq_otros_guias', label: 'FAQ: otros guías' },
+      ],
+    },
+    { label: 'Tours agregados', kind: 'count', countUrl: `${API}/api/tours`, countKey: 'tours', countLabel: 'tour(s) agregado(s)' },
+    {
+      label: 'Contacto',
+      kind: 'text',
+      page: 'contacto',
+      fields: [{ field: 'horarios', label: 'Horarios de disponibilidad' }],
+    },
+  ];
+
+  function statusGroupHtml(title: string, done: number, total: number, itemsHtml: string): string {
+    const complete = total > 0 && done >= total;
+    return `
+      <div class="status-group">
+        <div class="status-group-head">
+          <h4>${title}</h4>
+          <span class="status-progress ${complete ? 'complete' : ''}">${done}/${total}</span>
+        </div>
+        <div class="status-bar"><div class="status-bar-fill ${complete ? 'complete' : ''}" style="width:${total ? Math.round((done / total) * 100) : 0}%"></div></div>
+        <div class="status-items">${itemsHtml}</div>
+      </div>`;
+  }
+
+  async function buildChecklist() {
+    const container = document.getElementById('status-checklist')!;
+    const groupsHtml: string[] = [];
+
+    for (const group of CHECKLIST) {
+      if (group.kind === 'text' && group.page && group.fields) {
+        try {
+          const res = await fetch(`${API}/api/get-content?page=${group.page}`);
+          const result = await res.json();
+          const data = result.success ? result.data : {};
+          const doneFields = group.fields.filter((f) => data[f.field] && data[f.field].trim());
+          const itemsHtml = group.fields
+            .map((f) => {
+              const done = !!(data[f.field] && data[f.field].trim());
+              return `<div class="status-item ${done ? 'done' : ''}"><span class="status-dot">${done ? '✓' : ''}</span>${f.label}</div>`;
+            })
+            .join('');
+          groupsHtml.push(statusGroupHtml(group.label, doneFields.length, group.fields.length, itemsHtml));
+        } catch {
+          groupsHtml.push(statusGroupHtml(group.label, 0, group.fields.length, '<p class="photo-empty">No se pudo cargar.</p>'));
+        }
+      } else if (group.kind === 'count' && group.countUrl && group.countKey) {
+        try {
+          const res = await fetch(group.countUrl);
+          const result = await res.json();
+          const count = result.success && Array.isArray(result[group.countKey]) ? result[group.countKey].length : 0;
+          const done = count > 0 ? 1 : 0;
+          const itemsHtml = `<div class="status-item ${done ? 'done' : ''}"><span class="status-dot">${done ? '✓' : ''}</span>${count} ${group.countLabel}</div>`;
+          groupsHtml.push(statusGroupHtml(group.label, done, 1, itemsHtml));
+        } catch {
+          groupsHtml.push(statusGroupHtml(group.label, 0, 1, '<p class="photo-empty">No se pudo cargar.</p>'));
+        }
+      }
+    }
+
+    container.innerHTML = groupsHtml.join('');
+  }
+
+  buildChecklist();
 </script>

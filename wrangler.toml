@@ -1,9 +1,2 @@
 name = "quechua-aventuras"
-type = "javascript"
-account_id = ""
-workers_dev = true
-
-[build]
-command = "npm run build"
-cwd = "./"
-directory = "dist"
+compatibility_date = "2026-08-08"

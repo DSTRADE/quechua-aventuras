@@ -1,0 +1,13 @@
+name = "quechua-aventuras"
+type = "javascript"
+account_id = ""
+workers_dev = true
+route = ""
+zone_id = ""
+main = "dist/server/entry.mjs"
+build = { command = "npm run build", cwd = "./", root = "." }
+env = { production = { name = "quechua-aventuras" } }
+
+[build]
+command = "npm run build"
+cwd = "./"

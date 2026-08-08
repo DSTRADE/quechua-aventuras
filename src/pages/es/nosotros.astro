@@ -3,103 +3,152 @@ import Base from '../../layouts/Base.astro';
 ---
 
 <Base title="Sobre Luis">
+  <div class="hero" style="min-height: 42vh; background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1800&q=80');">
+    <div class="hero-content">
+      <span class="eyebrow">Sobre ti, Luis</span>
+      <h1>La cara detrás de Quechua Aventuras</h1>
+      <p class="lede">Esta página es donde los clientes deciden si confían en ti. Cuéntales quién eres.</p>
+    </div>
+  </div>
+
   <section>
-    <h1>Sobre Ti, Luis</h1>
-    <p style="font-size: 1.1rem; color: #666;">
-      Esta página es donde los clientes aprenden quién eres tú. Es lo más importante del sitio.
-      Los turistas quieren saber: ¿Quién va a ser mi guía? ¿Tiene experiencia? ¿Puedo confiar en él?
-    </p>
-
-    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 1rem; margin: 2rem 0; border-radius: 4px;">
-      <strong>💡 Consejo:</strong> Esta página debe sonar como TÚ. No es un formulario aburrido.
-      Es tu presentación personal. Cuéntale a los futuros clientes tu verdadera historia.
+    <div class="placeholder-note">
+      💡 <strong>Consejo:</strong> Esta página debe sonar como tú. Imagina que le estás contando tu historia a
+      un viajero frente a un café en Cusco — así de natural debería sentirse.
     </div>
 
-    <h2>Tu Foto</h2>
-    <div style="background: #f5f5f5; padding: 2rem; border-radius: 8px; margin-bottom: 2rem; text-align: center;">
+    <div class="panel text-center" style="margin-bottom: 2.5rem;">
       <img
-        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80"
+        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=500&q=80"
         alt="Foto de Luis"
-        style="width: 100%; max-width: 300px; border-radius: 8px; height: 400px; object-fit: cover;"
+        style="width: 220px; height: 220px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem; box-shadow: var(--shadow-md);"
       />
-      <p style="margin-top: 1rem; font-size: 0.9rem; color: #999;">
-        📝 Tu foto va aquí - una foto clara de ti, preferiblemente en las montañas o con equipo de escalada
-      </p>
+      <p style="color: var(--stone); font-size: 0.9rem;">📸 Aquí va tu foto — envíanos una que te guste, idealmente en las montañas.</p>
     </div>
 
-    <h2>Tu Historia</h2>
-    <div class="placeholder-note">
-      <strong>📝 Cuéntanos tu historia</strong>
-      <p>Imagina que estás sentado en un café con un turista potencial. ¿Cómo le explicarías quién eres?</p>
+    <h2>Tu historia</h2>
+    <p>Responde estas preguntas con tus propias palabras — escribe directamente abajo, o mándanos una nota de voz y nosotros la pasamos a texto.</p>
+
+    <div class="editable-box" data-field="bio_inicio">
+      <div class="prompt-q">¿Cuánto tiempo llevas como guía de montaña y cómo empezaste?</div>
+      <div class="prompt-hint">Ej: "Comencé en 1995 cuando tenía 20 años. Desde entonces he hecho más de 500 tours..."</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
     </div>
 
-    <div style="background: #f9f7f4; padding: 2rem; border-radius: 8px; margin: 2rem 0;">
-      <p>Aquí están las cosas que los turistas quieren saber. Puedes responder cada una:</p>
-
-      <h3>¿Cuánto tiempo llevas como guía de montaña?</h3>
-      <p style="color: #666;">
-        <em>Ejemplo: "Comencé en 1995 cuando tenía 20 años. Desde entonces he hecho más de 500 tours..."</em>
-      </p>
-      <p><strong>📝 [Tu respuesta aquí]</strong></p>
-
-      <h3>¿En qué regiones has trabajado?</h3>
-      <p style="color: #666;">
-        <em>Ejemplo: "Trabajé para 5 compañías diferentes en Cusco, y guié tours en Machu Picchu, Ausangate, Salkantay..."</em>
-      </p>
-      <p><strong>📝 [Tu respuesta aquí]</strong></p>
-
-      <h3>¿Cuáles son tus experiencias más memorables?</h3>
-      <p style="color: #666;">
-        <em>Ejemplo: "Una vez guié a una abuela de 75 años al Ausangate y fue la mejor experiencia de su vida..."</em>
-      </p>
-      <p><strong>📝 [Tu respuesta aquí]</strong></p>
-
-      <h3>¿Qué te apasiona de las montañas del Perú?</h3>
-      <p style="color: #666;">
-        <em>Ejemplo: "Me aman las montañas porque... cada viaje es una nueva historia..."</em>
-      </p>
-      <p><strong>📝 [Tu respuesta aquí]</strong></p>
-
-      <h3>¿Por qué decidiste crear Quechua Aventuras?</h3>
-      <p style="color: #666;">
-        <em>Ejemplo: "Después de tantos años trabajando para otras compañías, decidí que quería tener el control total de la calidad de mis tours..."</em>
-      </p>
-      <p><strong>📝 [Tu respuesta aquí]</strong></p>
+    <div class="editable-box" data-field="bio_regiones">
+      <div class="prompt-q">¿En qué regiones y países has trabajado?</div>
+      <div class="prompt-hint">Ej: "He guiado en Cusco, el Altiplano boliviano y la Patagonia chilena..."</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
     </div>
 
-    <h2>Tu Experiencia y Credibilidad</h2>
-    <div style="background: #f9f7f4; padding: 2rem; border-radius: 8px; margin: 2rem 0;">
-      <p>Los turistas quieren saber que eres un profesional. Ayúdalos a confiar en ti:</p>
-
-      <h3>Años de Experiencia</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> ¿Cuántos años llevas como guía profesional?</p>
-
-      <h3>Certificaciones y Entrenamientos</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> ¿Tienes certificaciones de guía turístico? ¿Primeros auxilios? ¿Rescate de altura?</p>
-
-      <h3>Idiomas que Hablas</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> ¿Hablas inglés, francés, italiano? ¿Otros idiomas?</p>
-
-      <h3>Especialidades</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> ¿Eres especialista en algo? (Alta altitud, trekking técnico, arqueología, historia, ecología, etc.)</p>
-
-      <h3>Números que Impresionan</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> ¿Cuántos tours has completado? ¿Cuántos clientes satisfechos? ¿Qué porcentaje de clientes se hacen amigos tuyos?</p>
+    <div class="editable-box" data-field="bio_memorable">
+      <div class="prompt-q">¿Cuál ha sido tu experiencia más memorable como guía?</div>
+      <div class="prompt-hint">Ej: "Una vez guié a una abuela de 75 años al Ausangate y fue la mejor experiencia de su vida..."</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
     </div>
 
-    <h2>Lo Que Ves Aquí vs Lo Que Verán Tus Clientes</h2>
-    <div style="background: #e8f4f8; padding: 1.5rem; border-radius: 8px;">
-      <p>
-        <strong>⚠️ Importante:</strong> Ahora ves todas las preguntas y placeholders que te muestran exactamente
-        qué necesitamos. Cuando tu información esté completa, los futuros clientes verán una página hermosa,
-        profesional y con tu verdadera historia - sin ver los placeholders.
-      </p>
+    <div class="editable-box" data-field="bio_pasion">
+      <div class="prompt-q">¿Qué te apasiona de las montañas de Sudamérica?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+
+    <div class="editable-box" data-field="bio_porque">
+      <div class="prompt-q">¿Por qué decidiste crear Quechua Aventuras por tu cuenta?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+
+    <h2>Tu experiencia y credibilidad</h2>
+    <p>Ayuda a los turistas a confiar en ti como profesional.</p>
+
+    <div class="editable-box" data-field="exp_anos">
+      <div class="prompt-q">¿Cuántos años de experiencia tienes y cuántos tours has completado aproximadamente?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+
+    <div class="editable-box" data-field="exp_certificaciones">
+      <div class="prompt-q">¿Tienes certificaciones? (primeros auxilios, rescate de altura, guía oficial, etc.)</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+
+    <div class="editable-box" data-field="exp_idiomas">
+      <div class="prompt-q">¿Qué idiomas hablas?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+
+    <div class="editable-box" data-field="exp_especialidad">
+      <div class="prompt-q">¿Tienes alguna especialidad? (alta altitud, trekking técnico, arqueología, fotografía...)</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
     </div>
 
     <div class="placeholder-note">
-      <strong>📝 Tu Rol:</strong> Lee todas las preguntas de arriba. Cuando estés listo, contacta a través
-      de la página de <a href="/es/contacto/">Contacto</a> y comparte tu información. Pueden ser mensajes escritos,
-      notas de voz, o una llamada. ¡Lo que sea más cómodo para ti!
+      📝 <strong>Tu turno:</strong> Completa lo que puedas ahora — puedes volver más tarde y seguir editando.
+      Todo lo que escribas queda guardado automáticamente en el sitio.
     </div>
   </section>
 </Base>
+
+<script>
+  const PAGE = 'nosotros';
+  const API = 'https://quechua-aventuras.dstevo191.workers.dev';
+
+  async function loadContent() {
+    try {
+      const res = await fetch(`${API}/api/get-content?page=${PAGE}`);
+      const result = await res.json();
+      if (result.success) {
+        document.querySelectorAll('.editable-box').forEach((box) => {
+          const field = box.getAttribute('data-field');
+          const textarea = box.querySelector('textarea') as HTMLTextAreaElement;
+          if (field && result.data[field]) {
+            textarea.value = result.data[field];
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Failed to load content', e);
+    }
+  }
+
+  function wireSaveButtons() {
+    document.querySelectorAll('.editable-box').forEach((box) => {
+      const field = box.getAttribute('data-field');
+      const textarea = box.querySelector('textarea') as HTMLTextAreaElement;
+      const btn = box.querySelector('.btn-save') as HTMLButtonElement;
+      const status = box.querySelector('.save-status') as HTMLElement;
+
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        status.textContent = 'Guardando...';
+        status.classList.add('saving');
+        try {
+          const res = await fetch(`${API}/api/save-content`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ page: PAGE, field, value: textarea.value }),
+          });
+          const result = await res.json();
+          status.classList.remove('saving');
+          status.textContent = result.success ? '✓ Guardado' : 'Error al guardar';
+          setTimeout(() => (status.textContent = ''), 3000);
+        } catch (e) {
+          status.classList.remove('saving');
+          status.textContent = 'Error al guardar';
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  loadContent();
+  wireSaveButtons();
+</script>

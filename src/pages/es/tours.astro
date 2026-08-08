@@ -3,162 +3,198 @@ import Base from '../../layouts/Base.astro';
 ---
 
 <Base title="Tus Tours">
-  <section>
-    <h1>Tu Catálogo de Tours</h1>
-    <p style="font-size: 1.1rem; color: #666;">
-      Esta página es tu vitrina. Aquí es donde los clientes ven todos tus tours y eligen cuál quieren hacer.
-    </p>
-
-    <div class="placeholder-note">
-      <strong>📝 Nota para Luis:</strong> Los 3 tours que ves abajo son ejemplos. Aquí es donde vas a agregar
-      TODOS tus tours. Cada uno tendrá su propia página con fotos, descripción completa, itinerario, precio, etc.
+  <div class="hero" style="min-height: 42vh; background-image: url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1800&q=80');">
+    <div class="hero-content">
+      <span class="eyebrow">Tu catálogo</span>
+      <h1>Tours por toda Sudamérica</h1>
+      <p class="lede">Perú, Bolivia, Chile, Argentina y más — organizados por país para que tus clientes encuentren fácilmente su próxima aventura.</p>
     </div>
+  </div>
 
-    <h2>Tours Disponibles</h2>
-    <p>
-      Estos son algunos de nuestros tours más populares alrededor de Cusco. Haz clic en cualquiera
-      para ver más detalles y fotos.
-    </p>
+  <section>
+    <div class="explainer-banner">
+      <h3>🤖 Agregar un tour es muy simple</h3>
+      <p>Solo necesitamos tres datos: el <strong>nombre del tour</strong>, el <strong>país</strong> y el <strong>precio</strong>. Con eso, el sitio investiga automáticamente y sugiere la descripción, duración, distancia, elevación, altitud máxima, dificultad e itinerario típico de ese tour.</p>
+      <p>Tú solo tienes que revisar lo que se generó y corregir lo que haga falta — mucho más rápido que escribir todo desde cero.</p>
+    </div>
+  </section>
 
-    <h3>Alrededor de Cusco y los Andes</h3>
+  <section>
+    <h2>Agregar un nuevo tour</h2>
+    <form id="tour-form">
+      <label for="name">Nombre del tour</label>
+      <input type="text" id="name" name="name" required placeholder="Ej: Circuito Ausangate" />
+
+      <label for="country">País</label>
+      <select id="country" name="country" required>
+        <option value="">Selecciona un país</option>
+        <option value="Perú">Perú</option>
+        <option value="Bolivia">Bolivia</option>
+        <option value="Chile">Chile</option>
+        <option value="Argentina">Argentina</option>
+        <option value="Ecuador">Ecuador</option>
+        <option value="Colombia">Colombia</option>
+        <option value="Otro">Otro</option>
+      </select>
+
+      <label for="price">Precio por persona (USD)</label>
+      <input type="text" id="price" name="price" required placeholder="Ej: 450" />
+
+      <label for="notes">Notas adicionales (opcional)</label>
+      <textarea id="notes" name="notes" placeholder="Cualquier detalle que quieras que tengamos en cuenta — o deja en blanco y lo investigamos por ti."></textarea>
+
+      <button type="submit" id="submit-btn">Agregar tour con ayuda de IA</button>
+    </form>
+    <div id="tour-form-status" style="margin-top: 1rem; font-weight: 600;"></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Ejemplos</span>
+      <h2>Tours de muestra (Perú)</h2>
+    </div>
+    <p>Estos tres tours ya están construidos como ejemplo de cómo se ve una página de tour completa.</p>
     <div class="card-grid">
       <a href="/es/tours/ausangate-circuit/" style="text-decoration: none; color: inherit;">
         <div class="card">
-          <img
-            src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=400&q=80"
-            alt="Ausangate Circuit"
-            class="card-image"
-          />
+          <div class="card-image-wrap">
+            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=500&q=80" alt="Ausangate Circuit" class="card-image" />
+          </div>
           <div class="card-content">
             <h3 class="card-title">Circuito Ausangate</h3>
-            <p class="card-text">
-              Un circuito desafiante de 5 días alrededor de la montaña más sagrada.
-            </p>
-            <p style="font-size: 0.9rem; color: #999;">⏱️ 5 días • 📍 60 km • 📈 Avanzado</p>
+            <p class="card-text">Un circuito desafiante de 5 días alrededor de la montaña más sagrada.</p>
+            <div class="card-meta"><span class="pill">🇵🇪 Perú</span><span class="pill pill-clay">Avanzado</span></div>
           </div>
         </div>
       </a>
-
       <a href="/es/tours/siete-lagunas/" style="text-decoration: none; color: inherit;">
         <div class="card">
-          <img
-            src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=400&q=80"
-            alt="Siete Lagunas"
-            class="card-image"
-          />
+          <div class="card-image-wrap">
+            <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=500&q=80" alt="Siete Lagunas" class="card-image" />
+          </div>
           <div class="card-content">
             <h3 class="card-title">Siete Lagunas de Cusco</h3>
-            <p class="card-text">
-              Un tour perfecto para ver lagunas alpinas hermosas en 3 días.
-            </p>
-            <p style="font-size: 0.9rem; color: #999;">⏱️ 3 días • 📍 35 km • 📈 Intermedio</p>
+            <p class="card-text">Lagunas alpinas espectaculares en un tour de 3 días.</p>
+            <div class="card-meta"><span class="pill">🇵🇪 Perú</span><span class="pill pill-clay">Intermedio</span></div>
           </div>
         </div>
       </a>
-
       <a href="/es/tours/salkantay/" style="text-decoration: none; color: inherit;">
         <div class="card">
-          <img
-            src="https://images.unsplash.com/photo-1587595431973-160beaf930f1?auto=format&fit=crop&w=400&q=80"
-            alt="Salkantay"
-            class="card-image"
-          />
+          <div class="card-image-wrap">
+            <img src="https://images.unsplash.com/photo-1587595431973-160beaf930f1?auto=format&fit=crop&w=500&q=80" alt="Salkantay" class="card-image" />
+          </div>
           <div class="card-content">
             <h3 class="card-title">Salkantay Trek</h3>
-            <p class="card-text">
-              Camina a Machu Picchu por una ruta épica que cruza picos nevados.
-            </p>
-            <p style="font-size: 0.9rem; color: #999;">⏱️ 5 días • 📍 50 km • 📈 Intermedio-Avanzado</p>
+            <p class="card-text">Ruta alternativa a Machu Picchu cruzando picos nevados.</p>
+            <div class="card-meta"><span class="pill">🇵🇪 Perú</span><span class="pill pill-clay">Intermedio-Avanzado</span></div>
           </div>
         </div>
       </a>
     </div>
+  </section>
 
-    <h2>¿Qué Información Necesitamos Para Cada Tour?</h2>
-    <p>
-      Para que cada página de tour sea atractiva y completa, necesitamos esta información:
-    </p>
-
-    <div style="background: #f9f7f4; padding: 2rem; border-radius: 8px;">
-      <h3>Lo Básico</h3>
-      <ul>
-        <li><strong>Nombre del tour</strong> - ¿Cómo se llama? (Ej: "Circuito Ausangate")</li>
-        <li><strong>Descripción corta</strong> - Una frase que capte la esencia</li>
-        <li><strong>Descripción larga</strong> - 1-2 párrafos contando la historia del tour</li>
-        <li><strong>Foto principal</strong> - Una foto hermosa de ti en el tour</li>
-      </ul>
-
-      <h3>Información Técnica</h3>
-      <ul>
-        <li><strong>Duración</strong> - ¿Cuántos días y noches?</li>
-        <li><strong>Distancia total</strong> - ¿Cuántos kilómetros?</li>
-        <li><strong>Elevación total</strong> - ¿Cuántos metros de subida y bajada?</li>
-        <li><strong>Altitud máxima</strong> - ¿El punto más alto en metros?</li>
-        <li><strong>Nivel de dificultad</strong> - Principiante / Intermedio / Avanzado</li>
-        <li><strong>Tamaño de grupo</strong> - ¿Máximo cuántas personas?</li>
-        <li><strong>Mejor época</strong> - ¿Cuál es la mejor temporada? (Ej: "Abril a Octubre")</li>
-      </ul>
-
-      <h3>Itinerario Día por Día</h3>
-      <ul>
-        <li>Para CADA DÍA: ¿Qué hacen? ¿Dónde caminan? ¿Dónde acampan? ¿Cuánto caminan?</li>
-        <li>Puntos interesantes: vistas, plantas, animales, história cultural</li>
-        <li>Altitud de cada campamento</li>
-      </ul>
-
-      <h3>Lo Que Está Incluido</h3>
-      <ul>
-        <li>¿Transporte? ¿Comidas? ¿Tiendas? ¿Equipo de camping?</li>
-        <li>¿Cuántos porteadores o animales de carga?</li>
-        <li>¿Guías adicionales?</li>
-      </ul>
-
-      <h3>Precio y Reserva</h3>
-      <ul>
-        <li><strong>Precio por persona</strong> - En USD</li>
-        <li><strong>Qué NO está incluido</strong> - Vuelos, hotel en Cusco, bebidas, seguros, propinas, etc.</li>
-      </ul>
-
-      <h3>Requisitos y Consideraciones</h3>
-      <ul>
-        <li>Nivel de fitness requerido</li>
-        <li>Aclimatación recomendada</li>
-        <li>Restricciones de edad</li>
-        <li>Consideraciones de salud (soroche, presión, etc.)</li>
-        <li>Equipo que el cliente debe traer</li>
-        <li>Vacunas recomendadas</li>
-      </ul>
-
-      <h3>Fotos</h3>
-      <ul>
-        <li>Mínimo 3-5 fotos tuyas en el tour</li>
-        <li>Fotos del paisaje, campamentos, vistas espectaculares</li>
-        <li>Fotos de personas (clientes anteriores si tienes, o solamente tú)</li>
-      </ul>
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Tus tours agregados</span>
+      <h2>Catálogo en vivo</h2>
     </div>
-
-    <h2>Ejemplos: Mira las Páginas de Tours</h2>
-    <p>
-      Haz clic en cualquiera de los tours de arriba para ver cómo se ve la página completa de un tour.
-      Verás todos los placeholders que muestran exactamente dónde va cada información que nos des.
-    </p>
-
-    <h2>¿Cuántos Tours Deberías Tener?</h2>
-    <p>
-      No hay un número mágico. Algunos guías ofrecen 3-4 tours principales, otros tienen 10+.
-      Lo importante es que cada tour esté bien documentado con:
-    </p>
-    <ul>
-      <li>✅ Una buena historia</li>
-      <li>✅ Fotos tuyas reales en el tour</li>
-      <li>✅ Información completa y precisa</li>
-      <li>✅ Precio claro</li>
-    </ul>
-
-    <div class="placeholder-note">
-      <strong>Tu Rol:</strong> Cuando estés listo, comparte la lista de tours que quieres ofrecer.
-      Para cada uno, proporciona la información de arriba. Puedes hacerlo en etapas:
-      primero 1-2 tours, después agregas más. ¡No necesitas completar todo de una vez!
+    <p>Los tours que agregues con el formulario de arriba aparecerán aquí automáticamente, agrupados por país.</p>
+    <div id="dynamic-tours">
+      <p style="color: var(--stone);">Cargando...</p>
     </div>
   </section>
 </Base>
+
+<script>
+  const API = 'https://quechua-aventuras.dstevo191.workers.dev';
+
+  const flagFor = (country: string) => {
+    const map: Record<string, string> = {
+      'Perú': '🇵🇪', 'Bolivia': '🇧🇴', 'Chile': '🇨🇱', 'Argentina': '🇦🇷',
+      'Ecuador': '🇪🇨', 'Colombia': '🇨🇴',
+    };
+    return map[country] || '🌎';
+  };
+
+  function tourCard(tour: any): string {
+    return `
+      <div class="card">
+        <div class="card-content">
+          <h3 class="card-title">${tour.name}</h3>
+          <p class="card-text">${(tour.description || '').slice(0, 140)}${tour.description && tour.description.length > 140 ? '…' : ''}</p>
+          <div class="card-meta">
+            <span class="pill">${flagFor(tour.country)} ${tour.country}</span>
+            <span class="pill pill-clay">${tour.difficulty || 'Por confirmar'}</span>
+            <span class="pill pill-gold">$${tour.price}</span>
+            ${tour.aiGenerated ? '<span class="pill pill-ai">✨ detalles sugeridos por IA</span>' : ''}
+          </div>
+          <div class="card-meta" style="margin-top:0.6rem;">
+            <span>${tour.days || '—'}</span> · <span>${tour.distanceKm || '—'}</span> · <span>Alt. máx ${tour.maxAltitudeM || '—'}</span>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function loadTours() {
+    const container = document.getElementById('dynamic-tours')!;
+    try {
+      const res = await fetch(`${API}/api/tours`);
+      const result = await res.json();
+      if (!result.success || !result.tours.length) {
+        container.innerHTML = '<p style="color: var(--stone);">Todavía no has agregado tours con el formulario. ¡Prueba arriba! 👆</p>';
+        return;
+      }
+
+      const byCountry: Record<string, any[]> = {};
+      for (const tour of result.tours) {
+        byCountry[tour.country] = byCountry[tour.country] || [];
+        byCountry[tour.country].push(tour);
+      }
+
+      let html = '';
+      for (const country of Object.keys(byCountry)) {
+        html += `<div class="country-heading"><span class="country-flag">${flagFor(country)}</span><h3 style="margin:0;">${country}</h3></div>`;
+        html += `<div class="card-grid">${byCountry[country].map(tourCard).join('')}</div>`;
+      }
+      container.innerHTML = html;
+    } catch (e) {
+      container.innerHTML = '<p style="color: var(--stone);">No se pudieron cargar los tours en este momento.</p>';
+    }
+  }
+
+  const form = document.getElementById('tour-form') as HTMLFormElement;
+  const statusEl = document.getElementById('tour-form-status')!;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Investigando y generando detalles... (puede tardar unos segundos)';
+    statusEl.textContent = '';
+
+    try {
+      const formData = new FormData(form);
+      const res = await fetch(`${API}/api/submit-tour`, { method: 'POST', body: formData });
+      const result = await res.json();
+
+      if (result.success) {
+        statusEl.style.color = 'var(--forest)';
+        statusEl.innerHTML = `✓ "${result.tour.name}" agregado con éxito. Revisa el catálogo en vivo abajo y corrige cualquier detalle que no sea exacto.`;
+        form.reset();
+        loadTours();
+      } else {
+        statusEl.style.color = 'var(--clay)';
+        statusEl.textContent = result.message || 'Error al agregar el tour';
+      }
+    } catch (err) {
+      statusEl.style.color = 'var(--clay)';
+      statusEl.textContent = 'Error al agregar el tour. Intenta de nuevo.';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Agregar tour con ayuda de IA';
+    }
+  });
+
+  loadTours();
+</script>

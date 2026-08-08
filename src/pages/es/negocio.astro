@@ -3,197 +3,135 @@ import Base from '../../layouts/Base.astro';
 ---
 
 <Base title="Tu Negocio y Filosofía">
+  <div class="hero" style="min-height: 40vh; background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1800&q=80');">
+    <div class="hero-content">
+      <span class="eyebrow">Tu filosofía</span>
+      <h1>Por qué haces lo que haces</h1>
+      <p class="lede">No es solo sobre trekking técnico — es sobre tu visión como guía y negocio.</p>
+    </div>
+  </div>
+
   <section>
-    <h1>Tu Filosofía y Valores de Negocio</h1>
-    <p style="font-size: 1.1rem; color: #666;">
-      Esta página es donde explicas POR QUÉ haces lo que haces. No es solo sobre los tours técnicos,
-      sino sobre tu visión como guía y empresario.
-    </p>
-
-    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 1rem; margin: 2rem 0; border-radius: 4px;">
-      <strong>💡 Por qué importa:</strong> Los turistas modernos no solo buscan una caminata. Buscan
-      una experiencia auténtica con un guía que tiene valores claros. Esta página es donde ganas
-      la confianza y la lealtad antes de que siquiera comiencen el tour.
+    <div class="placeholder-note">
+      💡 Los turistas modernos no solo buscan una caminata — buscan un guía con valores claros. Esta página
+      genera confianza antes de que el cliente siquiera te escriba.
     </div>
 
-    <h2>Cuéntanos tu Filosofía</h2>
-    <p>
-      <strong>📝 Responde esto:</strong> Si pudiera explicarte tu filosofía en una conversación casual,
-      ¿qué dirías? Aquí están algunas preguntas para ayudarte a pensar:
-    </p>
+    <h2>Tu filosofía, en tus palabras</h2>
 
-    <div style="background: #f9f7f4; padding: 2rem; border-radius: 8px;">
-      <h3>¿Cuál es tu filosofía sobre el tamaño de los grupos?</h3>
-      <p style="color: #666;">
-        <em>¿Prefieres grupos pequeños o grandes? ¿Por qué? ¿Cuál es tu límite de personas por tour?</em>
-      </p>
-      <p><strong>📝 [Tu respuesta aquí]</strong></p>
-
-      <h3>¿Cómo aseguras la seguridad de tus clientes?</h3>
-      <p style="color: #666;">
-        <em>Cuéntale a la gente qué haces para mantenerlos seguros. ¿Equipo de primeros auxilios? ¿Entrenamiento? ¿Comunicación?</em>
-      </p>
-      <p><strong>📝 [Tu respuesta aquí]</strong></p>
-
-      <h3>¿Cuál es tu conexión con las comunidades locales?</h3>
-      <p style="color: #666;">
-        <em>¿Trabajas con comunidades indígenas? ¿Das empleo local? ¿Apoyas proyectos comunitarios?</em>
-      </p>
-      <p><strong>📝 [Tu respuesta aquí]</strong></p>
-
-      <h3>¿Cómo cuidas el medio ambiente?</h3>
-      <p style="color: #666;">
-        <em>¿Qué haces para ser sostenible? ¿Dejas basura cero? ¿Educas a los turistas?</em>
-      </p>
-      <p><strong>📝 [Tu respuesta aquí]</strong></p>
-
-      <h3>¿Cómo personalizas las experiencias?</h3>
-      <p style="color: #666;">
-        <em>¿Haces cambios para diferentes tipos de turistas? ¿Personas mayores? ¿Fotógrafos? ¿Arqueología?</em>
-      </p>
-      <p><strong>📝 [Tu respuesta aquí]</strong></p>
-
-      <h3>¿Qué hace tu enfoque diferente de otros guías?</h3>
-      <p style="color: #666;">
-        <em>¿Cuál es tu mayor ventaja? ¿Por qué alguien debería elegirte a ti vs otro guía?</em>
-      </p>
-      <p><strong>📝 [Tu respuesta aquí]</strong></p>
+    <div class="editable-box" data-field="fil_grupos">
+      <div class="prompt-q">¿Cuál es tu filosofía sobre el tamaño de los grupos?</div>
+      <div class="prompt-hint">¿Prefieres grupos pequeños o grandes? ¿Cuál es tu límite por tour?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
     </div>
 
-    <h2>Tus Principios</h2>
-    <p>
-      Piensa en 3-5 principios o valores que guíen tu trabajo. Por ejemplo:
-    </p>
-
-    <div class="card-grid">
-      <div class="card">
-        <div class="card-content">
-          <h3 class="card-title">Autenticidad</h3>
-          <p class="card-text">
-            <strong>📝 [PLACEHOLDER]</strong><br />
-            ¿Qué significa autenticidad para ti? ¿Cómo la reflejas en tus tours?
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-content">
-          <h3 class="card-title">Sostenibilidad</h3>
-          <p class="card-text">
-            <strong>📝 [PLACEHOLDER]</strong><br />
-            ¿Cómo proteges el medio ambiente?
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-content">
-          <h3 class="card-title">Inclusividad</h3>
-          <p class="card-text">
-            <strong>📝 [PLACEHOLDER]</strong><br />
-            ¿Cómo haces que tus tours sean accesibles para diferentes niveles de fitness?
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-content">
-          <h3 class="card-title">Comunidad Local</h3>
-          <p class="card-text">
-            <strong>📝 [PLACEHOLDER]</strong><br />
-            ¿Cómo apoyas a las comunidades locales?
-          </p>
-        </div>
-      </div>
+    <div class="editable-box" data-field="fil_seguridad">
+      <div class="prompt-q">¿Cómo aseguras la seguridad de tus clientes?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
     </div>
 
-    <h2>Preguntas Frecuentes</h2>
-    <p>
-      Los turistas potenciales siempre hacen las mismas preguntas. Aquí es donde respondemos
-      de forma clara. Piensa en las preguntas que TE HACEN SIEMPRE:
-    </p>
-
-    <div style="background: #f9f7f4; padding: 2rem; border-radius: 8px;">
-      <h3>¿Qué nivel de fitness se requiere?</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> Explica los diferentes niveles de dificultad de tus tours y qué es necesario.</p>
-
-      <h3>¿Cuál es la mejor época para visitar?</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> Información sobre estaciones, clima, y la mejor época para cada tour.</p>
-
-      <h3>¿Qué está incluido en el precio?</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> Detalles sobre qué está incluido y qué no en los paquetes.</p>
-
-      <h3>¿Puedo traer niños o personas mayores?</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> Información sobre restricciones de edad y adaptaciones.</p>
-
-      <h3>¿Qué pasa si me enferma (soroche)?</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> Cuéntale qué haces si alguien se enferma durante el tour.</p>
-
-      <h3>¿Necesito experiencia previa?</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> Explica si es necesario tener experiencia en trekking.</p>
-
-      <p style="margin-top: 1.5rem;">
-        <em>¿Hay otras preguntas que siempre te hacen? Agregalas aquí también.</em>
-      </p>
+    <div class="editable-box" data-field="fil_comunidad">
+      <div class="prompt-q">¿Cuál es tu conexión con las comunidades locales de las zonas donde operas?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
     </div>
 
-    <h2>Nuestros Principios</h2>
-    <div class="card-grid">
-      <div class="card">
-        <div class="card-content">
-          <h3 class="card-title">Autenticidad</h3>
-          <p class="card-text">
-            <strong>📝 [PLACEHOLDER]</strong> ¿Qué significa autenticidad para ti en tus tours?
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-content">
-          <h3 class="card-title">Sostenibilidad</h3>
-          <p class="card-text">
-            <strong>📝 [PLACEHOLDER]</strong> ¿Cómo proteges el medio ambiente en tus operaciones?
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-content">
-          <h3 class="card-title">Accesibilidad</h3>
-          <p class="card-text">
-            <strong>📝 [PLACEHOLDER]</strong> ¿Cómo haces que tus tours sean accesibles para diferentes niveles de fitness?
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-content">
-          <h3 class="card-title">Comunidad Local</h3>
-          <p class="card-text">
-            <strong>📝 [PLACEHOLDER]</strong> ¿Cómo apoyas a las comunidades locales?
-          </p>
-        </div>
-      </div>
+    <div class="editable-box" data-field="fil_ambiente">
+      <div class="prompt-q">¿Cómo cuidas el medio ambiente en tus tours?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
     </div>
 
-    <h2>Preguntas Frecuentes</h2>
-    <div style="margin: 2rem 0;">
-      <h3>¿Qué nivel de fitness se requiere?</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> Explica los diferentes niveles de dificultad de tus tours.</p>
+    <div class="editable-box" data-field="fil_diferente">
+      <div class="prompt-q">¿Qué hace tu enfoque diferente al de otros guías u operadores?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
 
-      <h3>¿Cuál es la mejor época para visitar?</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> Información sobre estaciones, clima, y la mejor época para cada tour.</p>
+    <h2>Preguntas frecuentes</h2>
+    <p>Los clientes siempre preguntan lo mismo — respondamos aquí de forma clara.</p>
 
-      <h3>¿Qué incluye el precio?</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> Detalles sobre qué está incluido y qué no en los paquetes.</p>
+    <div class="editable-box" data-field="faq_fitness">
+      <div class="prompt-q">¿Qué nivel de fitness se requiere para tus tours?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
 
-      <h3>¿Puedo traer niños o personas mayores?</h3>
-      <p><strong>📝 [PLACEHOLDER]</strong> Información sobre restricciones de edad y adaptaciones.</p>
+    <div class="editable-box" data-field="faq_incluido">
+      <div class="prompt-q">¿Qué está incluido normalmente en el precio, y qué no?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+
+    <div class="editable-box" data-field="faq_soroche">
+      <div class="prompt-q">¿Qué pasa si un cliente se enferma por la altura (soroche) durante el tour?</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+
+    <div class="editable-box" data-field="faq_otros_guias">
+      <div class="prompt-q">¿Todos los tours los guías tú personalmente, o trabajas con otros guías también?</div>
+      <div class="prompt-hint">Esto nos ayuda a mostrar correctamente quién lidera cada tour en el sitio.</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
     </div>
 
     <div class="placeholder-note">
-      <strong>📝 Nota para Luis:</strong> Esta página comunica tu filosofía y valores. Es donde potenciales
-      clientes entienden tu enfoque único. Asegúrate de que reflejen lo que te hace diferente de otros guías.
+      📝 <strong>Tu turno:</strong> Responde lo que puedas ahora, guarda, y vuelve cuando quieras a completar el resto.
     </div>
   </section>
 </Base>
+
+<script>
+  const PAGE = 'negocio';
+  const API = 'https://quechua-aventuras.dstevo191.workers.dev';
+
+  async function loadContent() {
+    try {
+      const res = await fetch(`${API}/api/get-content?page=${PAGE}`);
+      const result = await res.json();
+      if (result.success) {
+        document.querySelectorAll('.editable-box').forEach((box) => {
+          const field = box.getAttribute('data-field');
+          const textarea = box.querySelector('textarea') as HTMLTextAreaElement;
+          if (field && result.data[field]) textarea.value = result.data[field];
+        });
+      }
+    } catch (e) {
+      console.error('Failed to load content', e);
+    }
+  }
+
+  function wireSaveButtons() {
+    document.querySelectorAll('.editable-box').forEach((box) => {
+      const field = box.getAttribute('data-field');
+      const textarea = box.querySelector('textarea') as HTMLTextAreaElement;
+      const btn = box.querySelector('.btn-save') as HTMLButtonElement;
+      const status = box.querySelector('.save-status') as HTMLElement;
+
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        status.textContent = 'Guardando...';
+        try {
+          const res = await fetch(`${API}/api/save-content`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ page: PAGE, field, value: textarea.value }),
+          });
+          const result = await res.json();
+          status.textContent = result.success ? '✓ Guardado' : 'Error al guardar';
+          setTimeout(() => (status.textContent = ''), 3000);
+        } catch {
+          status.textContent = 'Error al guardar';
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  loadContent();
+  wireSaveButtons();
+</script>

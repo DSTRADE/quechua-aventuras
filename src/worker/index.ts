@@ -1,9 +1,32 @@
 import { handleSetupContact, handleCustomerContact } from './contact-handler';
+import {
+  handleSaveContent,
+  handleGetContent,
+  handleSubmitTour,
+  handleGetTours,
+  handleDeleteTour,
+} from './site-data-handler';
 
 export interface Env {
   CONTACT_CONFIG: KVNamespace;
   RESEND_API_KEY: string;
+  OPENROUTER_API_KEY: string;
   __STATIC_CONTENT: KVNamespace;
+  SITE_DATA: KVNamespace;
+}
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, GET, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+function withCors(response: Response): Response {
+  const newResponse = new Response(response.body, response);
+  Object.entries(corsHeaders).forEach(([key, value]) => {
+    newResponse.headers.set(key, value);
+  });
+  return newResponse;
 }
 
 export default {
@@ -11,32 +34,37 @@ export default {
     const url = new URL(request.url);
     const pathname = url.pathname;
 
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    };
-
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
 
+    // ---- API routes ----
     if (pathname === '/api/setup-contact' && request.method === 'POST') {
-      const response = await handleSetupContact(request, env);
-      const newResponse = new Response(response.body, response);
-      Object.entries(corsHeaders).forEach(([key, value]) => {
-        newResponse.headers.set(key, value);
-      });
-      return newResponse;
+      return withCors(await handleSetupContact(request, env));
     }
 
     if (pathname === '/api/contact' && request.method === 'POST') {
-      const response = await handleCustomerContact(request, env);
-      const newResponse = new Response(response.body, response);
-      Object.entries(corsHeaders).forEach(([key, value]) => {
-        newResponse.headers.set(key, value);
-      });
-      return newResponse;
+      return withCors(await handleCustomerContact(request, env));
+    }
+
+    if (pathname === '/api/save-content' && request.method === 'POST') {
+      return withCors(await handleSaveContent(request, env));
+    }
+
+    if (pathname === '/api/get-content' && request.method === 'GET') {
+      return withCors(await handleGetContent(request, env));
+    }
+
+    if (pathname === '/api/submit-tour' && request.method === 'POST') {
+      return withCors(await handleSubmitTour(request, env));
+    }
+
+    if (pathname === '/api/tours' && request.method === 'GET') {
+      return withCors(await handleGetTours(request, env));
+    }
+
+    if (pathname === '/api/delete-tour' && request.method === 'POST') {
+      return withCors(await handleDeleteTour(request, env));
     }
 
     if (pathname === '/health') {
@@ -52,15 +80,14 @@ export default {
       });
     }
 
-    // Serve static files from KV - search for hashed filenames
+    // ---- Static files (Astro build output), stored in KV with hashed names ----
     try {
       const list = await env.__STATIC_CONTENT.list({ limit: 1000 });
-      
+
       let target = pathname;
       if (target.startsWith('/')) target = target.slice(1);
       if (target.endsWith('/') || target === '') target += 'index.html';
-      
-      // Look for files matching this path (handles hashed filenames)
+
       for (const file of list.keys) {
         const name = file.name;
         if (name === target || name.includes(target.replace(/\.html$/, ''))) {
@@ -70,6 +97,8 @@ export default {
               ? 'text/html; charset=utf-8'
               : name.endsWith('.js')
               ? 'application/javascript'
+              : name.endsWith('.css')
+              ? 'text/css'
               : 'application/octet-stream';
             return new Response(content, {
               headers: { 'Content-Type': contentType },

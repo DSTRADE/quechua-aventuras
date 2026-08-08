@@ -2,173 +2,72 @@
 import Base from '../../layouts/Base.astro';
 ---
 
-<script>
-  // Handle setup contact form
-  const setupForm = document.querySelector('form[action="https://quechua-aventuras.dstevo191.workers.dev/api/setup-contact"]') as HTMLFormElement;
-  if (setupForm) {
-    setupForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const formData = new FormData(setupForm);
-
-      try {
-        const response = await fetch('https://quechua-aventuras.dstevo191.workers.dev/api/setup-contact', {
-          method: 'POST',
-          body: formData,
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          // Update display info
-          const email = formData.get('luisEmail') as string;
-          const whatsapp = formData.get('luisWhatsapp') as string;
-          const phone = formData.get('luisPhone') as string;
-          const location = formData.get('luisLocation') as string;
-
-          document.getElementById('display-email')!.textContent = email || 'No configurado';
-          document.getElementById('display-whatsapp')!.textContent = whatsapp || 'No configurado';
-          document.getElementById('display-phone')!.textContent = phone || 'No configurado';
-          document.getElementById('display-location')!.textContent = location || 'No configurado';
-
-          alert('✓ Tu información de contacto ha sido guardada exitosamente!');
-          setupForm.reset();
-        } else {
-          alert('Error: ' + result.message);
-        }
-      } catch (error) {
-        alert('Error al guardar tu información');
-        console.error(error);
-      }
-    });
-  }
-
-  // Handle customer contact form
-  const contactForm = document.querySelector('form[action="https://quechua-aventuras.dstevo191.workers.dev/api/contact"]') as HTMLFormElement;
-  if (contactForm) {
-    contactForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const formData = new FormData(contactForm);
-      const submitBtn = contactForm.querySelector('button') as HTMLButtonElement;
-      const originalText = submitBtn.textContent;
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Enviando...';
-
-      try {
-        const response = await fetch('https://quechua-aventuras.dstevo191.workers.dev/api/contact', {
-          method: 'POST',
-          body: formData,
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          alert('✓ Mensaje enviado! Luis te contactará pronto.');
-          contactForm.reset();
-        } else {
-          alert('Error: ' + result.message);
-        }
-      } catch (error) {
-        alert('Error al enviar el mensaje');
-        console.error(error);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-      }
-    });
-  }
-</script>
-
 <Base title="Contacto">
-  <section>
-    <h1>Contacto - Comunicate Conmigo</h1>
-    <p style="font-size: 1.1rem;">
-      Esta página sirve dos propósitos:
-    </p>
-    <ul style="font-size: 1.1rem;">
-      <li><strong>Para tus clientes:</strong> Aquí es donde pueden contactarte para reservar tours</li>
-      <li><strong>Para ti (Luis):</strong> Aquí es donde me contactas a mí para darme información sobre tus tours o cambios que quieres hacer</li>
-    </ul>
+  <div class="hero" style="min-height: 34vh; background-image: url('https://images.unsplash.com/photo-1522199755839-a2bacb67c546?auto=format&fit=crop&w=1800&q=80');">
+    <div class="hero-content">
+      <span class="eyebrow">Contacto</span>
+      <h1>Hablemos</h1>
+      <p class="lede">Esta página sirve dos propósitos: aquí tus clientes te contactan para reservar, y aquí tú nos das información sobre el sitio.</p>
+    </div>
+  </div>
 
-    <h2>¿PRIMERO: Dónde Quieres Recibir Mensajes?</h2>
+  <section>
     <div class="placeholder-note">
-      <strong>📝 IMPORTANTE - Lee esto primero, Luis:</strong>
-      <p>
-        Abajo hay dos formularios. El primero es PARA TI - es donde nos dices dónde quieres recibir
-        los mensajes de tus clientes. El segundo es para que tus CLIENTES te contacten.
-      </p>
+      📝 <strong>Importante, Luis:</strong> abajo hay dos formularios. El primero es <strong>para ti</strong> —
+      dinos dónde quieres recibir los mensajes de tus clientes. El segundo es <strong>para tus clientes</strong>,
+      quienes lo usarán para escribirte.
     </div>
 
-    <h3>Formulario de Configuración (Para Luis)</h3>
-    <p>
-      Completa esto PRIMERO para decirle al sitio dónde enviar los mensajes de tus clientes:
-    </p>
-    <form method="POST" action="https://quechua-aventuras.dstevo191.workers.dev/api/setup-contact" style="background: #f9f7f4; padding: 2rem; border-radius: 8px; margin-bottom: 3rem;">
-      <label for="luis-email">Tu Email Principal</label>
-      <input type="email" id="luis-email" name="luisEmail" required placeholder="Tu email donde recibirás mensajes" />
+    <div class="panel">
+      <span class="eyebrow">Paso 1 · Para ti, Luis</span>
+      <h2 class="mt-0">¿Dónde quieres recibir tus mensajes?</h2>
+      <form id="setup-form">
+        <label for="luis-email">Tu email principal</label>
+        <input type="email" id="luis-email" name="luisEmail" required placeholder="Tu email donde recibirás mensajes" />
 
-      <label for="luis-whatsapp">Tu WhatsApp (opcional)</label>
-      <input type="tel" id="luis-whatsapp" name="luisWhatsapp" placeholder="Tu número de WhatsApp" />
+        <label for="luis-whatsapp">Tu WhatsApp (opcional)</label>
+        <input type="tel" id="luis-whatsapp" name="luisWhatsapp" placeholder="Tu número de WhatsApp" />
 
-      <label for="luis-phone">Tu Teléfono (opcional)</label>
-      <input type="tel" id="luis-phone" name="luisPhone" placeholder="Tu número de teléfono" />
+        <label for="luis-phone">Tu teléfono (opcional)</label>
+        <input type="tel" id="luis-phone" name="luisPhone" placeholder="Tu número de teléfono" />
 
-      <label for="luis-location">Tu Ubicación en Cusco (opcional)</label>
-      <input type="text" id="luis-location" name="luisLocation" placeholder="Ej: Centro de Cusco, Barrio X, etc." />
+        <label for="luis-location">Tu ubicación / ciudad base (opcional)</label>
+        <input type="text" id="luis-location" name="luisLocation" placeholder="Ej: Cusco, Perú" />
 
-      <label for="form-destination">¿Dónde quieres recibir los mensajes de los clientes?</label>
-      <select id="form-destination" name="formDestination" required style="width: 100%; padding: 0.75rem; margin-top: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-        <option value="">Selecciona una opción</option>
-        <option value="email">Por email (te enviaré a tu email principal)</option>
-        <option value="whatsapp">Por WhatsApp (te enviaré mensajes a tu WhatsApp)</option>
-        <option value="both">Ambos (email Y WhatsApp)</option>
-      </select>
+        <label for="form-destination">¿Dónde quieres recibir los mensajes de los clientes?</label>
+        <select id="form-destination" name="formDestination" required>
+          <option value="">Selecciona una opción</option>
+          <option value="email">Por email</option>
+          <option value="whatsapp">Por WhatsApp</option>
+          <option value="both">Ambos (email y WhatsApp)</option>
+        </select>
 
-      <label for="receiving-email">Si quieres emails, ¿a qué dirección?</label>
-      <input type="email" id="receiving-email" name="receivingEmail" placeholder="Puede ser igual o diferente a tu email principal" />
+        <label for="receiving-email">Email donde quieres recibir las consultas</label>
+        <input type="email" id="receiving-email" name="receivingEmail" placeholder="Puede ser igual o diferente a tu email principal" />
 
-      <button type="submit">Guardar Mi Información de Contacto</button>
-    </form>
+        <button type="submit" id="setup-submit">Guardar mi información de contacto</button>
+      </form>
+      <div id="setup-status" style="margin-top: 1rem; font-weight: 600;"></div>
+    </div>
+  </section>
 
-    <hr style="margin: 2rem 0; border: none; border-top: 1px solid #ddd;" />
+  <section>
+    <span class="eyebrow">Paso 2 · Para tus clientes</span>
+    <h2>Cómo te van a encontrar</h2>
+    <p>Cuando completes el formulario de arriba, tus clientes potenciales usarán este formulario para escribirte.</p>
 
-    <h2>Formulario Para Tus Clientes</h2>
-    <p>
-      Cuando hayas completado el formulario de arriba, tus clientes potenciales podrán usar este formulario
-      para contactarte. Sus mensajes serán recibidos en el lugar que especificaste arriba.
-    </p>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
-      <div>
-        <h3>Tu Información de Contacto Actual</h3>
-        <div style="background: #f5f5f5; padding: 1.5rem; border-radius: 8px;">
-          <h4>📧 Email</h4>
-          <p id="display-email">
-            <em style="color: #999;">Completa el formulario de arriba para mostrar tu email</em>
-          </p>
-
-          <h4>📱 WhatsApp</h4>
-          <p id="display-whatsapp">
-            <em style="color: #999;">Completa el formulario de arriba para mostrar tu WhatsApp</em>
-          </p>
-
-          <h4>📞 Teléfono</h4>
-          <p id="display-phone">
-            <em style="color: #999;">Completa el formulario de arriba para mostrar tu teléfono</em>
-          </p>
-
-          <h4>📍 Ubicación</h4>
-          <p id="display-location">
-            <em style="color: #999;">Completa el formulario de arriba para mostrar tu ubicación</em>
-          </p>
-        </div>
+    <div class="card-grid" style="grid-template-columns: 1fr 1.2fr; align-items: start;">
+      <div class="panel panel-cream">
+        <h3 class="mt-0">Tu información actual</h3>
+        <p><strong>📧 Email:</strong> <span id="display-email">—</span></p>
+        <p><strong>📱 WhatsApp:</strong> <span id="display-whatsapp">—</span></p>
+        <p><strong>📞 Teléfono:</strong> <span id="display-phone">—</span></p>
+        <p><strong>📍 Ubicación:</strong> <span id="display-location">—</span></p>
       </div>
 
-      <div>
-        <h3>Formulario de Contacto para Clientes</h3>
-        <form method="POST" action="https://quechua-aventuras.dstevo191.workers.dev/api/contact">
+      <div class="panel">
+        <h3 class="mt-0">Formulario de contacto para clientes</h3>
+        <form id="customer-form">
           <label for="name">Nombre</label>
           <input type="text" id="name" name="name" required />
 
@@ -179,30 +78,138 @@ import Base from '../../layouts/Base.astro';
           <input type="tel" id="phone" name="phone" />
 
           <label for="tour">¿Qué tour te interesa?</label>
-          <select id="tour" name="tour" required style="width: 100%; padding: 0.75rem; margin-top: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+          <select id="tour" name="tour" required>
             <option value="">Selecciona un tour</option>
-            <option value="ausangate">Circuito Ausangate</option>
-            <option value="siete-lagunas">Siete Lagunas</option>
-            <option value="salkantay">Salkantay Trek</option>
-            <option value="personalizado">Tour Personalizado</option>
+            <option value="ausangate">Circuito Ausangate (Perú)</option>
+            <option value="siete-lagunas">Siete Lagunas (Perú)</option>
+            <option value="salkantay">Salkantay Trek (Perú)</option>
+            <option value="personalizado">Tour personalizado</option>
           </select>
 
           <label for="message">Mensaje</label>
           <textarea id="message" name="message" required></textarea>
 
-          <button type="submit">Enviar Mensaje a Luis</button>
+          <button type="submit" id="customer-submit">Enviar mensaje a Luis</button>
         </form>
       </div>
     </div>
+  </section>
 
-    <h2>Horarios de Atención</h2>
-    <p>
-      <strong>📝 [PLACEHOLDER]</strong> Cuéntanos tus horarios de disponibilidad:
-    </p>
-    <ul style="margin-left: 2rem;">
-      <li>¿Cuándo estás disponible para llamadas?</li>
-      <li>¿Cuál es tu zona horaria de referencia?</li>
-      <li>¿Hay temporadas cuando no organizas tours?</li>
-    </ul>
+  <section>
+    <h2>Horarios de disponibilidad</h2>
+    <div class="editable-box" data-field="horarios">
+      <div class="prompt-q">¿Cuáles son tus horarios y zona horaria? ¿Hay temporadas en que no operas?</div>
+      <div class="prompt-hint">Ej: "Disponible de 7am a 8pm hora de Perú. No opero tours en enero y febrero por temporada de lluvias."</div>
+      <textarea placeholder="Escribe tu respuesta aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
   </section>
 </Base>
+
+<script>
+  const API = 'https://quechua-aventuras.dstevo191.workers.dev';
+
+  // ---- Setup form ----
+  const setupForm = document.getElementById('setup-form') as HTMLFormElement;
+  const setupStatus = document.getElementById('setup-status')!;
+  const setupBtn = document.getElementById('setup-submit') as HTMLButtonElement;
+
+  setupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    setupBtn.disabled = true;
+    const formData = new FormData(setupForm);
+    try {
+      const res = await fetch(`${API}/api/setup-contact`, { method: 'POST', body: formData });
+      const result = await res.json();
+      if (result.success) {
+        document.getElementById('display-email')!.textContent = (formData.get('luisEmail') as string) || '—';
+        document.getElementById('display-whatsapp')!.textContent = (formData.get('luisWhatsapp') as string) || '—';
+        document.getElementById('display-phone')!.textContent = (formData.get('luisPhone') as string) || '—';
+        document.getElementById('display-location')!.textContent = (formData.get('luisLocation') as string) || '—';
+        setupStatus.style.color = 'var(--forest)';
+        setupStatus.textContent = '✓ Tu información de contacto ha sido guardada.';
+        setupForm.reset();
+      } else {
+        setupStatus.style.color = 'var(--clay)';
+        setupStatus.textContent = 'Error: ' + result.message;
+      }
+    } catch (err) {
+      setupStatus.style.color = 'var(--clay)';
+      setupStatus.textContent = 'Error al guardar tu información';
+    } finally {
+      setupBtn.disabled = false;
+    }
+  });
+
+  // ---- Customer form ----
+  const customerForm = document.getElementById('customer-form') as HTMLFormElement;
+  const customerBtn = document.getElementById('customer-submit') as HTMLButtonElement;
+
+  customerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    customerBtn.disabled = true;
+    const originalText = customerBtn.textContent;
+    customerBtn.textContent = 'Enviando...';
+    const formData = new FormData(customerForm);
+    try {
+      const res = await fetch(`${API}/api/contact`, { method: 'POST', body: formData });
+      const result = await res.json();
+      if (result.success) {
+        alert('✓ Mensaje enviado. Luis te contactará pronto.');
+        customerForm.reset();
+      } else {
+        alert('Error: ' + result.message);
+      }
+    } catch (err) {
+      alert('Error al enviar el mensaje');
+    } finally {
+      customerBtn.disabled = false;
+      customerBtn.textContent = originalText;
+    }
+  });
+
+  // ---- Editable box (horarios) ----
+  const PAGE = 'contacto';
+  async function loadContent() {
+    try {
+      const res = await fetch(`${API}/api/get-content?page=${PAGE}`);
+      const result = await res.json();
+      if (result.success) {
+        document.querySelectorAll('.editable-box').forEach((box) => {
+          const field = box.getAttribute('data-field');
+          const textarea = box.querySelector('textarea') as HTMLTextAreaElement;
+          if (field && result.data[field]) textarea.value = result.data[field];
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  document.querySelectorAll('.editable-box').forEach((box) => {
+    const field = box.getAttribute('data-field');
+    const textarea = box.querySelector('textarea') as HTMLTextAreaElement;
+    const btn = box.querySelector('.btn-save') as HTMLButtonElement;
+    const status = box.querySelector('.save-status') as HTMLElement;
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      status.textContent = 'Guardando...';
+      try {
+        const res = await fetch(`${API}/api/save-content`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ page: PAGE, field, value: textarea.value }),
+        });
+        const result = await res.json();
+        status.textContent = result.success ? '✓ Guardado' : 'Error al guardar';
+        setTimeout(() => (status.textContent = ''), 3000);
+      } catch {
+        status.textContent = 'Error al guardar';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+
+  loadContent();
+</script>

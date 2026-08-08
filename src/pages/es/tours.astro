@@ -60,57 +60,28 @@ import Base from '../../layouts/Base.astro';
 
   <section>
     <div class="section-head">
-      <span class="eyebrow">Ejemplos</span>
-      <h2>Tours de muestra (Perú)</h2>
+      <span class="eyebrow">Catálogo</span>
+      <h2>Busca y filtra tus tours</h2>
     </div>
-    <p>Estos tres tours ya están construidos como ejemplo de cómo se ve una página de tour completa.</p>
-    <div class="card-grid">
-      <a href="/es/tours/ausangate-circuit/" style="text-decoration: none; color: inherit;">
-        <div class="card">
-          <div class="card-image-wrap">
-            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=500&q=80" alt="Ausangate Circuit" class="card-image" />
-          </div>
-          <div class="card-content">
-            <h3 class="card-title">Circuito Ausangate</h3>
-            <p class="card-text">Un circuito desafiante de 5 días alrededor de la montaña más sagrada.</p>
-            <div class="card-meta"><span class="pill">🇵🇪 Perú</span><span class="pill pill-clay">Avanzado</span></div>
-          </div>
-        </div>
-      </a>
-      <a href="/es/tours/siete-lagunas/" style="text-decoration: none; color: inherit;">
-        <div class="card">
-          <div class="card-image-wrap">
-            <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=500&q=80" alt="Siete Lagunas" class="card-image" />
-          </div>
-          <div class="card-content">
-            <h3 class="card-title">Siete Lagunas de Cusco</h3>
-            <p class="card-text">Lagunas alpinas espectaculares en un tour de 3 días.</p>
-            <div class="card-meta"><span class="pill">🇵🇪 Perú</span><span class="pill pill-clay">Intermedio</span></div>
-          </div>
-        </div>
-      </a>
-      <a href="/es/tours/salkantay/" style="text-decoration: none; color: inherit;">
-        <div class="card">
-          <div class="card-image-wrap">
-            <img src="https://images.unsplash.com/photo-1533240332313-0db49b459ad6?auto=format&fit=crop&w=500&q=80" alt="Salkantay" class="card-image" />
-          </div>
-          <div class="card-content">
-            <h3 class="card-title">Salkantay Trek</h3>
-            <p class="card-text">Ruta alternativa a Machu Picchu cruzando picos nevados.</p>
-            <div class="card-meta"><span class="pill">🇵🇪 Perú</span><span class="pill pill-clay">Intermedio-Avanzado</span></div>
-          </div>
-        </div>
-      </a>
-    </div>
-  </section>
+    <p>Incluye los 3 tours de muestra y todos los que agregues con el formulario de arriba — así es como tus clientes van a poder explorar tu catálogo.</p>
 
-  <section>
-    <div class="section-head">
-      <span class="eyebrow">Tus tours agregados</span>
-      <h2>Catálogo en vivo</h2>
+    <div class="tour-filters">
+      <input type="search" id="tour-search" placeholder="🔍 Buscar por nombre, descripción o ruta..." />
+      <div class="filter-row">
+        <select id="filter-country"><option value="">Todos los países</option></select>
+        <select id="filter-difficulty"><option value="">Cualquier dificultad</option></select>
+        <select id="filter-duration">
+          <option value="">Cualquier duración</option>
+          <option value="short">1–2 días</option>
+          <option value="mid">3–5 días</option>
+          <option value="long">6+ días</option>
+        </select>
+        <button type="button" id="filter-clear" class="btn btn-outline">Limpiar filtros</button>
+      </div>
     </div>
-    <p>Los tours que agregues con el formulario de arriba aparecerán aquí automáticamente, agrupados por país.</p>
-    <div id="dynamic-tours">
+
+    <p id="tour-results-count" style="color: var(--stone); font-size: 0.9rem; margin: 1.25rem 0 0.5rem;"></p>
+    <div id="tour-catalog">
       <p style="color: var(--stone);">Cargando...</p>
     </div>
   </section>
@@ -149,64 +120,196 @@ import Base from '../../layouts/Base.astro';
     return (countries || []).map((c) => `<span class="pill">${flagFor(c)} ${c}</span>`).join('');
   }
 
-  function tourCard(tour: any): string {
-    const countries: string[] = tour.countries || [];
-    const multi = countries.length > 1;
-    const cover = tour.photos && tour.photos.length ? tour.photos[0] : null;
-    return `
-      <div class="card">
-        ${cover ? `<div class="card-image-wrap"><img src="${cover}" class="card-image" alt="${tour.name}" /></div>` : ''}
+  interface NormTour {
+    slug: string;
+    name: string;
+    url: string | null;
+    countries: string[];
+    difficulty: string;
+    daysNum: number | null;
+    daysDisplay: string;
+    distanceKm: string;
+    maxAltitudeM: string;
+    price: string | null;
+    description: string;
+    route: string;
+    cover: string | null;
+    aiGenerated: boolean;
+    isExample: boolean;
+  }
+
+  const STATIC_TOURS: NormTour[] = [
+    {
+      slug: 'ausangate-circuit', name: 'Circuito Ausangate', url: '/es/tours/ausangate-circuit/',
+      countries: ['Perú'], difficulty: 'Avanzado', daysNum: 5, daysDisplay: '5 días',
+      distanceKm: '~60 km', maxAltitudeM: '5,160 m', price: null,
+      description: 'Un circuito desafiante de 5 días alrededor de la montaña más sagrada.', route: '',
+      cover: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=500&q=80',
+      aiGenerated: false, isExample: true,
+    },
+    {
+      slug: 'siete-lagunas', name: 'Siete Lagunas de Cusco', url: '/es/tours/siete-lagunas/',
+      countries: ['Perú'], difficulty: 'Intermedio', daysNum: 3, daysDisplay: '3 días',
+      distanceKm: '', maxAltitudeM: '', price: null,
+      description: 'Lagunas alpinas espectaculares en un tour de 3 días.', route: '',
+      cover: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=500&q=80',
+      aiGenerated: false, isExample: true,
+    },
+    {
+      slug: 'salkantay', name: 'Salkantay Trek', url: '/es/tours/salkantay/',
+      countries: ['Perú'], difficulty: 'Intermedio-Avanzado', daysNum: 5, daysDisplay: '5 días',
+      distanceKm: '', maxAltitudeM: '', price: null,
+      description: 'Ruta alternativa a Machu Picchu cruzando picos nevados.', route: '',
+      cover: 'https://images.unsplash.com/photo-1533240332313-0db49b459ad6?auto=format&fit=crop&w=500&q=80',
+      aiGenerated: false, isExample: true,
+    },
+  ];
+
+  function parseDays(str: string | undefined): number | null {
+    if (!str) return null;
+    const m = str.match(/(\d+)/);
+    return m ? parseInt(m[1], 10) : null;
+  }
+
+  function normalizeDynamic(tour: any): NormTour {
+    return {
+      slug: tour.slug,
+      name: tour.name,
+      url: null,
+      countries: tour.countries && tour.countries.length ? tour.countries : ['Otro'],
+      difficulty: tour.difficulty || 'Por confirmar',
+      daysNum: parseDays(tour.days),
+      daysDisplay: tour.days || 'Por confirmar',
+      distanceKm: tour.distanceKm || '',
+      maxAltitudeM: tour.maxAltitudeM || '',
+      price: tour.price || null,
+      description: tour.description || '',
+      route: tour.route || '',
+      cover: tour.photos && tour.photos.length ? tour.photos[0] : null,
+      aiGenerated: !!tour.aiGenerated,
+      isExample: false,
+    };
+  }
+
+  let ALL_TOURS: NormTour[] = [...STATIC_TOURS];
+
+  function tourCard(tour: NormTour): string {
+    const multi = tour.countries.length > 1;
+    const inner = `
+        ${tour.cover ? `<div class="card-image-wrap"><img src="${tour.cover}" class="card-image" alt="${tour.name}" /></div>` : ''}
         <div class="card-content">
-          <h3 class="card-title">${tour.name}${multi ? ' <span class="pill pill-gold" style="vertical-align:middle;">🌎 multi-país</span>' : ''}</h3>
-          <p class="card-text">${(tour.description || '').slice(0, 140)}${tour.description && tour.description.length > 140 ? '…' : ''}</p>
+          <h3 class="card-title">${tour.name}${multi ? ' <span class="pill pill-gold" style="vertical-align:middle;">🌎 multi-país</span>' : ''}${tour.isExample ? ' <span class="pill" style="vertical-align:middle;">Ejemplo</span>' : ''}</h3>
+          <p class="card-text">${tour.description.slice(0, 140)}${tour.description.length > 140 ? '…' : ''}</p>
           ${tour.route ? `<p class="card-text" style="font-size:0.85rem;color:var(--stone);">📍 ${tour.route}</p>` : ''}
           <div class="card-meta">
-            ${countryPills(countries)}
-            <span class="pill pill-clay">${tour.difficulty || 'Por confirmar'}</span>
-            <span class="pill pill-gold">$${tour.price}</span>
+            ${countryPills(tour.countries)}
+            <span class="pill pill-clay">${tour.difficulty}</span>
+            ${tour.price ? `<span class="pill pill-gold">$${tour.price}</span>` : ''}
             ${tour.aiGenerated ? '<span class="pill pill-ai">✨ detalles sugeridos por IA</span>' : ''}
           </div>
           <div class="card-meta" style="margin-top:0.6rem;">
-            <span>${tour.days || '—'}</span> · <span>${tour.distanceKm || '—'}</span> · <span>Alt. máx ${tour.maxAltitudeM || '—'}</span>
+            <span>${tour.daysDisplay}</span>${tour.distanceKm ? ` · <span>${tour.distanceKm}</span>` : ''}${tour.maxAltitudeM ? ` · <span>Alt. máx ${tour.maxAltitudeM}</span>` : ''}
           </div>
           <div style="margin-top:0.75rem;">
-            <a href="/es/panel/#tour-${tour.slug}" class="pill" style="text-decoration:none;">✏️ Pedir cambios en este tour</a>
+            <a href="/es/panel/#tour-${tour.slug}" class="pill" style="text-decoration:none;" onclick="event.stopPropagation();">✏️ Pedir cambios en este tour</a>
             <div style="font-size:0.72rem;color:var(--stone);margin-top:0.3rem;">(este botón es para ti, Luis)</div>
           </div>
-        </div>
-      </div>`;
+        </div>`;
+    return tour.url
+      ? `<a href="${tour.url}" class="card" style="text-decoration:none;color:inherit;display:block;">${inner}</a>`
+      : `<div class="card">${inner}</div>`;
+  }
+
+  function populateFilterOptions() {
+    const countrySel = document.getElementById('filter-country') as HTMLSelectElement;
+    const diffSel = document.getElementById('filter-difficulty') as HTMLSelectElement;
+
+    const countries = Array.from(new Set(ALL_TOURS.flatMap((t) => t.countries))).sort();
+    const currentCountry = countrySel.value;
+    countrySel.innerHTML = '<option value="">Todos los países</option>' + countries.map((c) => `<option value="${c}">${flagFor(c)} ${c}</option>`).join('');
+    countrySel.value = currentCountry;
+
+    const difficulties = Array.from(new Set(ALL_TOURS.map((t) => t.difficulty))).sort();
+    const currentDiff = diffSel.value;
+    diffSel.innerHTML = '<option value="">Cualquier dificultad</option>' + difficulties.map((d) => `<option value="${d}">${d}</option>`).join('');
+    diffSel.value = currentDiff;
+  }
+
+  function matchesFilters(t: NormTour, search: string, country: string, difficulty: string, duration: string): boolean {
+    if (search) {
+      const hay = `${t.name} ${t.description} ${t.route}`.toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    if (country && !t.countries.includes(country)) return false;
+    if (difficulty && t.difficulty !== difficulty) return false;
+    if (duration) {
+      if (t.daysNum == null) return false;
+      if (duration === 'short' && t.daysNum > 2) return false;
+      if (duration === 'mid' && (t.daysNum < 3 || t.daysNum > 5)) return false;
+      if (duration === 'long' && t.daysNum < 6) return false;
+    }
+    return true;
+  }
+
+  function renderCatalog() {
+    const container = document.getElementById('tour-catalog')!;
+    const countEl = document.getElementById('tour-results-count')!;
+    const search = (document.getElementById('tour-search') as HTMLInputElement).value.trim().toLowerCase();
+    const country = (document.getElementById('filter-country') as HTMLSelectElement).value;
+    const difficulty = (document.getElementById('filter-difficulty') as HTMLSelectElement).value;
+    const duration = (document.getElementById('filter-duration') as HTMLSelectElement).value;
+
+    const filtered = ALL_TOURS.filter((t) => matchesFilters(t, search, country, difficulty, duration));
+
+    if (!filtered.length) {
+      countEl.textContent = '0 tours encontrados';
+      container.innerHTML = '<p style="color: var(--stone);">Ningún tour coincide con esos filtros. Prueba con otra búsqueda o toca "Limpiar filtros".</p>';
+      return;
+    }
+
+    countEl.textContent = `${filtered.length} tour${filtered.length === 1 ? '' : 's'} encontrado${filtered.length === 1 ? '' : 's'}`;
+
+    // Group by country; a multi-country tour appears under every country it touches
+    const byCountry: Record<string, NormTour[]> = {};
+    for (const tour of filtered) {
+      for (const c of tour.countries) {
+        byCountry[c] = byCountry[c] || [];
+        byCountry[c].push(tour);
+      }
+    }
+
+    let html = '';
+    for (const c of Object.keys(byCountry).sort()) {
+      html += `<div class="country-heading"><span class="country-flag">${flagFor(c)}</span><h3 style="margin:0;">${c}</h3></div>`;
+      html += `<div class="card-grid">${byCountry[c].map(tourCard).join('')}</div>`;
+    }
+    container.innerHTML = html;
   }
 
   async function loadTours() {
-    const container = document.getElementById('dynamic-tours')!;
     try {
       const res = await fetch(`${API}/api/tours`);
       const result = await res.json();
-      if (!result.success || !result.tours.length) {
-        container.innerHTML = '<p style="color: var(--stone);">Todavía no has agregado tours con el formulario. ¡Prueba arriba! 👆</p>';
-        return;
-      }
-
-      // A multi-country tour appears under every country it touches
-      const byCountry: Record<string, any[]> = {};
-      for (const tour of result.tours) {
-        const countries: string[] = tour.countries && tour.countries.length ? tour.countries : ['Otro'];
-        for (const country of countries) {
-          byCountry[country] = byCountry[country] || [];
-          byCountry[country].push(tour);
-        }
-      }
-
-      let html = '';
-      for (const country of Object.keys(byCountry)) {
-        html += `<div class="country-heading"><span class="country-flag">${flagFor(country)}</span><h3 style="margin:0;">${country}</h3></div>`;
-        html += `<div class="card-grid">${byCountry[country].map(tourCard).join('')}</div>`;
-      }
-      container.innerHTML = html;
+      const dynamic = result.success ? result.tours.map(normalizeDynamic) : [];
+      ALL_TOURS = [...STATIC_TOURS, ...dynamic];
     } catch (e) {
-      container.innerHTML = '<p style="color: var(--stone);">No se pudieron cargar los tours en este momento.</p>';
+      ALL_TOURS = [...STATIC_TOURS];
     }
+    populateFilterOptions();
+    renderCatalog();
   }
+
+  document.getElementById('tour-search')!.addEventListener('input', renderCatalog);
+  document.getElementById('filter-country')!.addEventListener('change', renderCatalog);
+  document.getElementById('filter-difficulty')!.addEventListener('change', renderCatalog);
+  document.getElementById('filter-duration')!.addEventListener('change', renderCatalog);
+  document.getElementById('filter-clear')!.addEventListener('click', () => {
+    (document.getElementById('tour-search') as HTMLInputElement).value = '';
+    (document.getElementById('filter-country') as HTMLSelectElement).value = '';
+    (document.getElementById('filter-difficulty') as HTMLSelectElement).value = '';
+    (document.getElementById('filter-duration') as HTMLSelectElement).value = '';
+    renderCatalog();
+  });
 
   const form = document.getElementById('tour-form') as HTMLFormElement;
   const statusEl = document.getElementById('tour-form-status')!;

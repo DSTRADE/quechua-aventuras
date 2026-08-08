@@ -800,6 +800,30 @@ button:disabled { opacity: 0.65; cursor: default; transform: none !important; }
 }
 .step:last-child { margin-bottom: 0; }
 
+/* ---------- Tour search & filters ---------- */
+.tour-filters { margin: 1.5rem 0 0; }
+
+.tour-filters input[type="search"] {
+  margin-bottom: 0.75rem;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.filter-row select {
+  flex: 1 1 170px;
+  width: auto;
+  margin-top: 0;
+}
+
+.filter-row .btn-outline {
+  flex: 0 0 auto;
+  padding: 0.8rem 1.4rem;
+}
+
 /* ---------- Country groups on Tours page ---------- */
 .country-heading {
   display: flex;
@@ -875,6 +899,8 @@ footer p { color: rgba(255,255,255,0.6); font-size: 0.88rem; margin-bottom: 0; }
   .itinerary-day { gap: 0.85rem; }
   .country-checks { gap: 0.5rem; }
   form { max-width: 100%; }
+  .filter-row { flex-direction: column; }
+  .filter-row select, .filter-row .btn-outline { flex: 1 1 auto; width: 100%; }
   .jump-nav { top: 62px; padding: 0.6rem 0; }
   .jump-nav a { padding: 0.5rem 0.9rem; font-size: 0.8rem; }
 }

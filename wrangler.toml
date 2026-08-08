@@ -1,2 +1,17 @@
 name = "quechua-aventuras"
 compatibility_date = "2026-08-08"
+type = "javascript"
+main = "src/worker/index.ts"
+
+# KV Namespace Binding for storing contact config
+[[kv_namespaces]]
+binding = "CONTACT_CONFIG"
+id = ""  # You'll fill this in after creating KV namespace
+preview_id = ""  # You'll fill this in after creating KV namespace
+
+# Environment variables
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+# Secrets (set via Cloudflare dashboard)
+# RESEND_API_KEY - get from https://resend.com/api-keys

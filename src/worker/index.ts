@@ -81,6 +81,9 @@ export default {
     }
 
     // ---- Static files (Astro build output), stored in KV with hashed names ----
+    // Wrangler's [site] uploader inserts its own content hash right before the
+    // file extension (e.g. client.BRZKPEzt.js -> client.BRZKPEzt.3287e51d2b.js).
+    // Strip that hash segment to recover the logical path and match exactly.
     try {
       const list = await env.__STATIC_CONTENT.list({ limit: 1000 });
 
@@ -88,9 +91,11 @@ export default {
       if (target.startsWith('/')) target = target.slice(1);
       if (target.endsWith('/') || target === '') target += 'index.html';
 
+      const stripHash = (name: string) => name.replace(/\.[0-9a-f]{8,}(?=\.[^.]+$)/, '');
+
       for (const file of list.keys) {
         const name = file.name;
-        if (name === target || name.includes(target.replace(/\.html$/, ''))) {
+        if (stripHash(name) === target) {
           const content = await env.__STATIC_CONTENT.get(name);
           if (content) {
             const contentType = name.endsWith('.html')

@@ -15,6 +15,70 @@ function escapeHtmlServer(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] || c));
 }
 
+// ---------- Branded admin email template (Alpenglow palette: clay/forest/gold/cream) ----------
+
+const BRAND = {
+  clay: '#B5502C',
+  clayDark: '#8F3D21',
+  forest: '#1F3D33',
+  forestDark: '#142822',
+  gold: '#D9A544',
+  goldLight: '#F0D9A8',
+  cream: '#FBF6EC',
+  cream2: '#F4EBDA',
+  ink: '#241C15',
+  stone: '#6B5F52',
+};
+
+const PAGE_LABELS: Record<string, string> = {
+  sitio: 'Home',
+  nosotros: 'About',
+  negocio: 'Philosophy',
+  tours: 'Tours',
+  contacto: 'Contact',
+  feedback: 'Control Panel',
+  'home-luis': "Home — Luis's photos",
+  'home-favorites': 'Home — Favorite photos',
+};
+
+function pageLabel(key: string): string {
+  return PAGE_LABELS[key] || key;
+}
+
+function emailQuote(text: string): string {
+  return `<blockquote style="margin:0 0 18px;padding:14px 16px;background:${BRAND.cream2};border-left:3px solid ${BRAND.gold};border-radius:8px;color:${BRAND.ink};font-style:italic;line-height:1.6;">${escapeHtmlServer(text).replace(/\n/g, '<br>')}</blockquote>`;
+}
+
+function emailBadge(text: string): string {
+  return `<span style="display:inline-block;background:${BRAND.cream2};color:${BRAND.forest};font-size:12px;font-weight:700;letter-spacing:0.02em;padding:4px 12px;border-radius:100px;margin:0 6px 6px 0;">${escapeHtmlServer(text)}</span>`;
+}
+
+function emailField(label: string, value: string): string {
+  return `<p style="margin:0 0 10px;font-size:14px;color:${BRAND.ink};"><strong style="color:${BRAND.forest};">${escapeHtmlServer(label)}:</strong> ${escapeHtmlServer(value)}</p>`;
+}
+
+function emailButton(label: string, url: string, variant: 'primary' | 'secondary' = 'primary'): string {
+  const bg = variant === 'primary' ? BRAND.forest : BRAND.cream2;
+  const color = variant === 'primary' ? '#ffffff' : BRAND.forest;
+  return `<a href="${url}" style="display:inline-block;background:${bg};color:${color};padding:12px 22px;border-radius:100px;text-decoration:none;font-weight:700;font-size:14px;margin:4px 10px 4px 0;">${label}</a>`;
+}
+
+function emailShell(eyebrow: string, headline: string, bodyHtml: string): string {
+  return `<div style="background:${BRAND.cream};padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+    <div style="max-width:560px;margin:0 auto;">
+      <div style="background:${BRAND.forest};border-radius:16px 16px 0 0;padding:22px 28px;text-align:center;">
+        <span style="font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.01em;">⛰ Quechua Aventuras</span>
+      </div>
+      <div style="background:#ffffff;padding:30px 28px;border-radius:0 0 16px 16px;box-shadow:0 12px 32px rgba(36,28,21,0.1);">
+        <span style="display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND.clay};margin-bottom:8px;">${eyebrow}</span>
+        <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:23px;font-weight:700;color:${BRAND.forest};margin:0 0 18px;line-height:1.25;">${headline}</h1>
+        ${bodyHtml}
+      </div>
+      <p style="text-align:center;color:#A79A89;font-size:12px;margin:20px 0 0;">Control Panel notification — Quechua Aventuras</p>
+    </div>
+  </div>`;
+}
+
 async function notifyAdmin(env: Env, subject: string, html: string): Promise<void> {
   try {
     await sendEmail(env, ADMIN_EMAIL, subject, html);
@@ -36,11 +100,13 @@ export async function handleSaveContent(request: Request, env: Env): Promise<Res
     if (body.value && body.value.trim()) {
       await notifyAdmin(
         env,
-        `Quechua Aventuras — Luis guardó texto (${body.page})`,
-        `<h2>Luis guardó contenido</h2>
-         <p><strong>Página:</strong> ${escapeHtmlServer(body.page)}</p>
-         <p><strong>Campo:</strong> ${escapeHtmlServer(body.field)}</p>
-         <blockquote style="border-left:3px solid #D9A544;padding-left:12px;color:#241C15;">${escapeHtmlServer(body.value).replace(/\n/g, '<br>').slice(0, 1000)}</blockquote>`
+        `Quechua Aventuras — Luis updated the ${pageLabel(body.page)} page`,
+        emailShell(
+          'Content update',
+          `Luis wrote something new on the <strong>${escapeHtmlServer(pageLabel(body.page))}</strong> page`,
+          `${emailBadge(body.field)}
+           <div style="margin-top:14px;">${emailQuote(body.value.slice(0, 1000))}</div>`
+        )
       );
     }
 
@@ -231,12 +297,17 @@ export async function handleSubmitTour(request: Request, env: Env): Promise<Resp
 
     await notifyAdmin(
       env,
-      `Quechua Aventuras — Luis agregó un tour: ${tour.name}`,
-      `<h2>Nuevo tour agregado</h2>
-       <p><strong>Nombre:</strong> ${escapeHtmlServer(tour.name)}</p>
-       <p><strong>País(es):</strong> ${escapeHtmlServer(tour.countries.join(', '))}</p>
-       <p><strong>Precio:</strong> $${escapeHtmlServer(tour.price)}</p>
-       <p><strong>Fotos incluidas:</strong> ${photos.length}</p>`
+      `Quechua Aventuras — New tour added: ${tour.name}`,
+      emailShell(
+        'New tour',
+        `Luis added a new tour: <strong>${escapeHtmlServer(tour.name)}</strong>`,
+        `${tour.countries.map((c: string) => emailBadge(c)).join('')}
+         <div style="margin-top:10px;">
+           ${emailField('Price', `$${tour.price}`)}
+           ${emailField('Photos included', String(photos.length))}
+           ${aiGenerated ? emailField('Details', 'AI-suggested — worth a quick review') : ''}
+         </div>`
+      )
     );
 
     return json({ success: true, tour });
@@ -315,11 +386,13 @@ export async function handleUploadPhoto(request: Request, env: Env): Promise<Res
 
     await notifyAdmin(
       env,
-      `Quechua Aventuras — Luis subió una foto (${page})`,
-      `<h2>Nueva foto subida</h2>
-       <p><strong>Página:</strong> ${escapeHtmlServer(page)}</p>
-       <p><strong>Archivo:</strong> ${escapeHtmlServer(file.name)}</p>
-       ${caption ? `<p><strong>Descripción:</strong> ${escapeHtmlServer(caption)}</p>` : ''}`
+      `Quechua Aventuras — Luis uploaded a photo`,
+      emailShell(
+        'New photo',
+        `Luis uploaded a photo to <strong>${escapeHtmlServer(pageLabel(page))}</strong>`,
+        `${emailField('File', file.name)}
+         ${caption ? emailQuote(caption) : ''}`
+      )
     );
 
     return json({ success: true, photo });
@@ -401,20 +474,22 @@ interface SuggestedChange {
   change: string;
 }
 
-const SITE_PAGES_CONTEXT = 'Inicio, Nosotros (biografía de Luis), Filosofía (valores y FAQ), Tours (catálogo y tours individuales), Contacto, y Diseño general (colores, tipografía, layout). No incluyas el Panel de Control como página — es solo para Luis, no lo ven los clientes.';
+const SITE_PAGES_CONTEXT = "Home, About (Luis's bio), Philosophy (values and FAQ), Tours (catalog and individual tours), Contact, and General design (colors, typography, layout). Do not include the Control Panel as a page — it's for Luis only, customers never see it.";
 
 async function generateSuggestedChanges(transcript: string, env: Env): Promise<SuggestedChange[]> {
-  const prompt = `Eres un asistente que ayuda a convertir el feedback hablado de Luis (dueño de un negocio de tours de aventura en Sudamérica) en una lista de cambios concretos y accionables para su sitio web.
+  // The transcript is in Spanish (Luis speaks Spanish) but the output is in
+  // English, since that's what the developer reading the notification reads.
+  const prompt = `You help turn Luis's spoken feedback (owner of an adventure tour business in South America) into a list of concrete, actionable changes for his website. The transcript below is in Spanish — read it in Spanish, but write your output in English.
 
-Páginas del sitio: ${SITE_PAGES_CONTEXT}
+Site pages: ${SITE_PAGES_CONTEXT}
 
-Nota de voz de Luis (ya transcrita):
+Luis's voice note (already transcribed, in Spanish):
 "${transcript}"
 
-Responde ÚNICAMENTE con un array JSON válido (sin markdown, sin texto adicional) con esta forma exacta:
-[{"page": "nombre de la página afectada, de la lista de arriba", "change": "descripción clara y específica de qué cambiar y por qué, en español"}]
+Respond with ONLY a valid JSON array (no markdown, no extra text) in exactly this shape:
+[{"page": "the affected page, from the list above", "change": "a clear, specific description in English of what to change and why"}]
 
-Si el feedback menciona varias cosas, sepáralas en varios objetos. Si es vago, interpreta la intención de la forma más razonable posible. Si no contiene ningún cambio accionable (ej. solo un saludo), responde con un array vacío [].`;
+If the feedback mentions multiple things, split them into separate objects. If it's vague, interpret the intent as reasonably as possible. If there's no actionable change (e.g. just a greeting), respond with an empty array [].`;
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -439,26 +514,43 @@ Si el feedback menciona varias cosas, sepáralas en varios objetos. Si es vago, 
 }
 
 function suggestedChangesHtml(changes: SuggestedChange[]): string {
-  if (!changes.length) return '<p style="color:#6B5F52;">No se identificaron cambios específicos en esta nota.</p>';
-  return `<ul style="padding-left:20px;">${changes
-    .map((c) => `<li style="margin-bottom:6px;"><strong>${escapeHtmlServer(c.page)}:</strong> ${escapeHtmlServer(c.change)}</li>`)
-    .join('')}</ul>`;
+  if (!changes.length) {
+    return `<p style="color:${BRAND.stone};font-size:14px;">No specific changes identified in this note.</p>`;
+  }
+  return `<div style="margin:0 0 20px;">
+    ${changes
+      .map(
+        (c) => `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid ${BRAND.cream2};">
+          <span style="flex-shrink:0;">${emailBadge(c.page)}</span>
+          <span style="font-size:14px;color:${BRAND.ink};line-height:1.5;">${escapeHtmlServer(c.change)}</span>
+        </div>`
+      )
+      .join('')}
+  </div>`;
 }
 
 const WORKER_ORIGIN = 'https://quechua-aventuras.dstevo191.workers.dev';
 
 function brandedHtmlPage(title: string, bodyHtml: string): string {
-  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${title}</title>
     <style>
-      body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#FBF6EC;color:#241C15;margin:0;padding:2rem 1.25rem;}
-      .box{max-width:520px;margin:2rem auto;background:white;border-radius:14px;padding:2rem;box-shadow:0 12px 32px rgba(36,28,21,0.12);}
-      h1{font-size:1.4rem;color:#1F3D33;margin-top:0;}
-      textarea{width:100%;min-height:120px;padding:0.8rem;border:1px solid rgba(36,28,21,0.15);border-radius:8px;font-family:inherit;font-size:1rem;box-sizing:border-box;}
-      button{margin-top:1rem;padding:0.8rem 1.6rem;background:#B5502C;color:white;border:none;border-radius:100px;font-weight:700;font-size:1rem;cursor:pointer;}
-      a.back{display:inline-block;margin-top:1.5rem;color:#B5502C;}
+      * { box-sizing: border-box; }
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:${BRAND.cream};color:${BRAND.ink};margin:0;padding:0;}
+      .topbar{background:${BRAND.forest};padding:22px 28px;text-align:center;}
+      .topbar span{font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;color:#ffffff;}
+      .wrap{max-width:520px;margin:0 auto;padding:2rem 1.25rem;}
+      .box{background:white;border-radius:16px;padding:2rem;box-shadow:0 12px 32px rgba(36,28,21,0.12);}
+      h1{font-family:Georgia,'Times New Roman',serif;font-size:1.5rem;color:${BRAND.forest};margin-top:0;}
+      blockquote{margin:0 0 18px;padding:14px 16px;background:${BRAND.cream2};border-left:3px solid ${BRAND.gold};border-radius:8px;color:${BRAND.ink};font-style:italic;line-height:1.6;}
+      textarea{width:100%;min-height:120px;padding:0.8rem;border:1px solid rgba(36,28,21,0.15);border-radius:8px;font-family:inherit;font-size:1rem;}
+      button{margin-top:1rem;padding:0.8rem 1.8rem;background:${BRAND.clay};color:white;border:none;border-radius:100px;font-weight:700;font-size:1rem;cursor:pointer;}
+      button:hover{background:${BRAND.clayDark};}
     </style>
-    </head><body><div class="box">${bodyHtml}</div></body></html>`;
+    </head><body>
+      <div class="topbar"><span>⛰ Quechua Aventuras</span></div>
+      <div class="wrap"><div class="box">${bodyHtml}</div></div>
+    </body></html>`;
 }
 
 async function setVoiceNoteStatus(env: Env, id: string, status: string, revisionNote?: string): Promise<any | null> {
@@ -508,16 +600,20 @@ export async function handleSaveVoiceNote(request: Request, env: Env): Promise<R
 
     await notifyAdmin(
       env,
-      `Quechua Aventuras — Luis dejó una nota de voz`,
-      `<h2>Nueva nota de voz (transcrita)</h2>
-       <blockquote style="border-left:3px solid #D9A544;padding-left:12px;color:#241C15;">${escapeHtmlServer(note.transcript)}</blockquote>
-       <h3>Cambios sugeridos</h3>
-       ${suggestedChangesHtml(suggestedChanges)}
-       <p>
-         <a href="${approveUrl}" style="display:inline-block;background:#1F3D33;color:white;padding:10px 20px;border-radius:100px;text-decoration:none;font-weight:bold;margin-right:10px;">✅ Aprobar cambios</a>
-         <a href="${reviseUrl}" style="display:inline-block;background:#F4EBDA;color:#1F3D33;padding:10px 20px;border-radius:100px;text-decoration:none;font-weight:bold;">✏️ Pedir ajuste</a>
-       </p>
-       <p style="font-size:12px;color:#666;">Aprobar marca esto como listo para que Claude lo implemente en la próxima sesión de trabajo en el sitio — no se publica nada automáticamente en este instante.</p>`
+      `Quechua Aventuras — Luis left a voice note`,
+      emailShell(
+        'Voice note',
+        `Luis left a voice note`,
+        `<p style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:${BRAND.stone};margin:0 0 6px;">Transcript (Spanish)</p>
+         ${emailQuote(note.transcript)}
+         <p style="font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:${BRAND.stone};margin:0 0 6px;">Suggested changes</p>
+         ${suggestedChangesHtml(suggestedChanges)}
+         <div style="margin-top:6px;">
+           ${emailButton('✅ Approve changes', approveUrl, 'primary')}
+           ${emailButton('✏️ Request adjustment', reviseUrl, 'secondary')}
+         </div>
+         <p style="font-size:12px;color:${BRAND.stone};margin-top:18px;">Approving marks this as ready for Claude to implement in the next site session — nothing publishes automatically right now.</p>`
+      )
     );
 
     return json({ success: true, note });
@@ -573,10 +669,13 @@ export async function handleSetVoiceNoteStatus(request: Request, env: Env): Prom
     if (body.status === 'needs-revision' && body.revisionNote) {
       await notifyAdmin(
         env,
-        `Quechua Aventuras — Luis pidió un ajuste en su nota de voz`,
-        `<h2>Ajuste pedido</h2>
-         <blockquote style="border-left:3px solid #D9A544;padding-left:12px;">${escapeHtmlServer(note.transcript)}</blockquote>
-         <p><strong>Lo que pidió ajustar:</strong> ${escapeHtmlServer(body.revisionNote)}</p>`
+        `Quechua Aventuras — Adjustment requested on a voice note`,
+        emailShell(
+          'Adjustment requested',
+          `An adjustment was requested on this voice note`,
+          `${emailQuote(note.transcript)}
+           ${emailField('Requested adjustment', body.revisionNote)}`
+        )
       );
     }
 
@@ -595,10 +694,10 @@ export async function handleVoiceNoteApprovePage(request: Request, env: Env): Pr
   const note = await setVoiceNoteStatus(env, id, 'approved');
 
   const bodyHtml = note
-    ? `<h1>✅ Cambios aprobados</h1><p>Quedó marcado como listo. Se implementará en la próxima sesión de trabajo en el sitio.</p><blockquote style="border-left:3px solid #D9A544;padding-left:12px;color:#6B5F52;">${escapeHtmlServer(note.transcript)}</blockquote>`
-    : `<h1>No encontramos esa nota</h1><p>Puede que ya haya sido eliminada.</p>`;
+    ? `<h1>✅ Changes approved</h1><p>Marked as ready. It'll be implemented in the next site work session.</p>${emailQuote(note.transcript)}`
+    : `<h1>Note not found</h1><p>It may have already been deleted.</p>`;
 
-  return new Response(brandedHtmlPage('Cambios aprobados', bodyHtml), {
+  return new Response(brandedHtmlPage('Changes approved', bodyHtml), {
     headers: { 'Content-Type': 'text/html; charset=utf-8' },
   });
 }
@@ -610,18 +709,18 @@ export async function handleVoiceNoteRevisePage(request: Request, env: Env): Pro
   const note = raw ? JSON.parse(raw) : null;
 
   const bodyHtml = note
-    ? `<h1>✏️ Pedir un ajuste</h1>
-       <p>Cuéntanos qué deberíamos entender distinto de esta nota:</p>
-       <blockquote style="border-left:3px solid #D9A544;padding-left:12px;color:#6B5F52;">${escapeHtmlServer(note.transcript)}</blockquote>
+    ? `<h1>✏️ Request an adjustment</h1>
+       <p>Tell us what should be interpreted differently on this note:</p>
+       ${emailQuote(note.transcript)}
        <form method="POST" action="${WORKER_ORIGIN}/api/voice-note-revise">
          <input type="hidden" name="id" value="${id}" />
-         <textarea name="revisionNote" placeholder="Ej: en realidad me refería a la página de Tours, no a Inicio..." required></textarea>
+         <textarea name="revisionNote" placeholder="E.g. that was actually about the Tours page, not Home..." required></textarea>
          <br/>
-         <button type="submit">Enviar ajuste</button>
+         <button type="submit">Send adjustment</button>
        </form>`
-    : `<h1>No encontramos esa nota</h1><p>Puede que ya haya sido eliminada.</p>`;
+    : `<h1>Note not found</h1><p>It may have already been deleted.</p>`;
 
-  return new Response(brandedHtmlPage('Pedir un ajuste', bodyHtml), {
+  return new Response(brandedHtmlPage('Request an adjustment', bodyHtml), {
     headers: { 'Content-Type': 'text/html; charset=utf-8' },
   });
 }
@@ -636,18 +735,21 @@ export async function handleVoiceNoteReviseSubmit(request: Request, env: Env): P
   if (note && revisionNote) {
     await notifyAdmin(
       env,
-      `Quechua Aventuras — Luis pidió un ajuste en su nota de voz`,
-      `<h2>Ajuste pedido</h2>
-       <blockquote style="border-left:3px solid #D9A544;padding-left:12px;">${escapeHtmlServer(note.transcript)}</blockquote>
-       <p><strong>Lo que pidió ajustar:</strong> ${escapeHtmlServer(revisionNote)}</p>`
+      `Quechua Aventuras — Adjustment requested on a voice note`,
+      emailShell(
+        'Adjustment requested',
+        `An adjustment was requested on this voice note`,
+        `${emailQuote(note.transcript)}
+         ${emailField('Requested adjustment', revisionNote)}`
+      )
     );
   }
 
   const bodyHtml = note
-    ? `<h1>Gracias</h1><p>Guardamos tu ajuste y avisamos para que se tenga en cuenta antes de implementar los cambios.</p>`
-    : `<h1>No encontramos esa nota</h1><p>Puede que ya haya sido eliminada.</p>`;
+    ? `<h1>Thanks</h1><p>Saved your adjustment — it'll be factored in before the changes are implemented.</p>`
+    : `<h1>Note not found</h1><p>It may have already been deleted.</p>`;
 
-  return new Response(brandedHtmlPage('Ajuste enviado', bodyHtml), {
+  return new Response(brandedHtmlPage('Adjustment sent', bodyHtml), {
     headers: { 'Content-Type': 'text/html; charset=utf-8' },
   });
 }
@@ -688,12 +790,13 @@ export async function handleSubmitTestimonial(request: Request, env: Env): Promi
 
     await notifyAdmin(
       env,
-      `Quechua Aventuras — Luis agregó un testimonio de ${testimonial.authorName}`,
-      `<h2>Nuevo testimonio</h2>
-       <p><strong>Cliente:</strong> ${escapeHtmlServer(testimonial.authorName)}</p>
-       ${testimonial.authorOrigin ? `<p><strong>Origen:</strong> ${escapeHtmlServer(testimonial.authorOrigin)}</p>` : ''}
-       ${testimonial.tourName ? `<p><strong>Tour:</strong> ${escapeHtmlServer(testimonial.tourName)}</p>` : ''}
-       <blockquote style="border-left:3px solid #D9A544;padding-left:12px;color:#241C15;">${escapeHtmlServer(testimonial.text)}</blockquote>`
+      `Quechua Aventuras — New testimonial from ${testimonial.authorName}`,
+      emailShell(
+        'New testimonial',
+        `Luis added a testimonial from <strong>${escapeHtmlServer(testimonial.authorName)}</strong>`,
+        `${testimonial.authorOrigin ? emailBadge(testimonial.authorOrigin) : ''}${testimonial.tourName ? emailBadge(testimonial.tourName) : ''}
+         <div style="margin-top:10px;">${emailQuote(testimonial.text)}</div>`
+      )
     );
 
     return json({ success: true, testimonial });

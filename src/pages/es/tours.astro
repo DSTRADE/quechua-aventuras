@@ -169,7 +169,10 @@ import Base from '../../layouts/Base.astro';
           <div class="card-meta" style="margin-top:0.6rem;">
             <span>${tour.days || '—'}</span> · <span>${tour.distanceKm || '—'}</span> · <span>Alt. máx ${tour.maxAltitudeM || '—'}</span>
           </div>
-          <a href="/es/panel/#tour-${tour.slug}" class="pill" style="margin-top:0.75rem;text-decoration:none;">✏️ Pedir cambios en este tour</a>
+          <div style="margin-top:0.75rem;">
+            <a href="/es/panel/#tour-${tour.slug}" class="pill" style="text-decoration:none;">✏️ Pedir cambios en este tour</a>
+            <div style="font-size:0.72rem;color:var(--stone);margin-top:0.3rem;">(este botón es para ti, Luis)</div>
+          </div>
         </div>
       </div>`;
   }

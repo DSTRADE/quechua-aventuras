@@ -36,7 +36,7 @@ import Base from '../../layouts/Base.astro';
       <span class="eyebrow">Habla en vez de escribir</span>
       <h2>Deja una nota de voz</h2>
     </div>
-    <p>¿Prefieres hablar? Graba tu feedback directamente desde el celular — lo transcribimos automáticamente y queda guardado aquí para que lo revisemos y hagamos los cambios que pidas.</p>
+    <p>¿Prefieres hablar? Toca el botón, cuéntanos qué cambiarías, y toca de nuevo para terminar. Nosotros nos encargamos del resto.</p>
 
     <div class="voice-recorder">
       <div class="voice-recorder-controls">
@@ -44,18 +44,6 @@ import Base from '../../layouts/Base.astro';
         <span id="voice-timer" class="voice-timer" style="display:none;">● 0:00</span>
       </div>
       <div id="voice-status" style="margin-top:0.75rem;font-weight:600;"></div>
-
-      <div id="voice-review" class="voice-review" style="display:none;">
-        <div class="prompt-q">Revisa la transcripción antes de guardar</div>
-        <div class="prompt-hint">Corrige cualquier palabra que se haya transcrito mal — así llega perfecto para que lo leamos.</div>
-        <textarea id="voice-transcript" placeholder="Transcripción..."></textarea>
-        <audio id="voice-audio-preview" controls style="width:100%;margin-top:0.75rem;"></audio>
-        <div class="save-row">
-          <button type="button" id="voice-save-btn" class="btn-save">Guardar nota de voz</button>
-          <button type="button" id="voice-discard-btn" class="btn-outline" style="padding:0.6rem 1.3rem;">Descartar</button>
-          <span id="voice-save-status" class="save-status"></span>
-        </div>
-      </div>
     </div>
 
     <div id="voice-notes-list" class="voice-notes-list" style="margin-top:1.5rem;">
@@ -479,21 +467,17 @@ import Base from '../../layouts/Base.astro';
   loadPublishStatus();
 
   // ---- Voice notes ----
+  // Kept deliberately simple for Luis on mobile: tap, talk, tap again, done.
+  // No transcript review step and no approve/status controls here — that
+  // review happens on the developer's side via the links in the notification email.
   const recordBtn = document.getElementById('voice-record-btn') as HTMLButtonElement;
   const voiceTimer = document.getElementById('voice-timer')!;
   const voiceStatus = document.getElementById('voice-status')!;
-  const voiceReview = document.getElementById('voice-review')!;
-  const voiceTranscript = document.getElementById('voice-transcript') as HTMLTextAreaElement;
-  const voiceAudioPreview = document.getElementById('voice-audio-preview') as HTMLAudioElement;
-  const voiceSaveBtn = document.getElementById('voice-save-btn') as HTMLButtonElement;
-  const voiceDiscardBtn = document.getElementById('voice-discard-btn') as HTMLButtonElement;
-  const voiceSaveStatus = document.getElementById('voice-save-status')!;
 
   let mediaRecorder: MediaRecorder | null = null;
   let audioChunks: BlobPart[] = [];
   let recordingSeconds = 0;
   let timerInterval: ReturnType<typeof setInterval> | null = null;
-  let lastAudioBlob: Blob | null = null;
 
   function formatTimer(s: number): string {
     const m = Math.floor(s / 60);
@@ -524,8 +508,7 @@ import Base from '../../layouts/Base.astro';
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
         const blob = new Blob(audioChunks, { type: mediaRecorder?.mimeType || 'audio/webm' });
-        lastAudioBlob = blob;
-        await transcribeAndReview(blob);
+        await transcribeAndSave(blob);
       };
       mediaRecorder.start();
 
@@ -541,7 +524,6 @@ import Base from '../../layouts/Base.astro';
       recordBtn.classList.add('recording');
       voiceStatus.style.color = 'var(--forest)';
       voiceStatus.textContent = 'Grabando... toca "Detener" cuando termines.';
-      voiceReview.style.display = 'none';
     } catch (e) {
       voiceStatus.style.color = 'var(--clay)';
       voiceStatus.textContent = 'No pudimos acceder al micrófono. Revisa los permisos del navegador.';
@@ -555,31 +537,46 @@ import Base from '../../layouts/Base.astro';
     recordBtn.classList.remove('recording');
     recordBtn.disabled = true;
     voiceStatus.style.color = 'var(--forest)';
-    voiceStatus.textContent = 'Transcribiendo tu nota...';
+    voiceStatus.textContent = 'Enviando tu nota...';
     mediaRecorder?.stop();
   }
 
-  async function transcribeAndReview(blob: Blob) {
+  async function transcribeAndSave(blob: Blob) {
     try {
       const fd = new FormData();
       fd.append('audio', blob, 'nota.webm');
       const res = await fetch(`${API}/api/transcribe-voice-note`, { method: 'POST', body: fd });
       const result = await res.json();
+
+      if (!result.success) {
+        recordBtn.disabled = false;
+        voiceStatus.style.color = 'var(--clay)';
+        voiceStatus.textContent = result.message || 'No se pudo entender el audio. Intenta grabar de nuevo, más cerca del micrófono.';
+        return;
+      }
+
+      const audioDataUrl = await blobToDataUrl(blob);
+      const saveRes = await fetch(`${API}/api/voice-notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript: result.transcript, audioDataUrl }),
+      });
+      const saveResult = await saveRes.json();
       recordBtn.disabled = false;
 
-      if (result.success) {
-        voiceStatus.textContent = '';
-        voiceTranscript.value = result.transcript;
-        voiceAudioPreview.src = URL.createObjectURL(blob);
-        voiceReview.style.display = 'block';
+      if (saveResult.success) {
+        voiceStatus.style.color = 'var(--forest)';
+        voiceStatus.textContent = '✓ Nota enviada. ¡Gracias!';
+        setTimeout(() => (voiceStatus.textContent = ''), 4000);
+        loadVoiceNotes();
       } else {
         voiceStatus.style.color = 'var(--clay)';
-        voiceStatus.textContent = result.message || 'No se pudo transcribir la nota.';
+        voiceStatus.textContent = saveResult.message || 'Error al guardar la nota.';
       }
     } catch {
       recordBtn.disabled = false;
       voiceStatus.style.color = 'var(--clay)';
-      voiceStatus.textContent = 'Error al transcribir. Revisa tu conexión e intenta de nuevo.';
+      voiceStatus.textContent = 'Error de conexión. Intenta de nuevo.';
     }
   }
 
@@ -591,62 +588,12 @@ import Base from '../../layouts/Base.astro';
     }
   });
 
-  voiceDiscardBtn.addEventListener('click', () => {
-    voiceReview.style.display = 'none';
-    voiceTranscript.value = '';
-    lastAudioBlob = null;
-    voiceStatus.textContent = '';
-  });
-
-  voiceSaveBtn.addEventListener('click', async () => {
-    if (!voiceTranscript.value.trim()) return;
-    voiceSaveBtn.disabled = true;
-    voiceSaveStatus.textContent = 'Guardando...';
-    try {
-      const audioDataUrl = lastAudioBlob ? await blobToDataUrl(lastAudioBlob) : null;
-      const res = await fetch(`${API}/api/voice-notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript: voiceTranscript.value.trim(), audioDataUrl }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        voiceSaveStatus.textContent = '✓ Guardada';
-        voiceReview.style.display = 'none';
-        voiceTranscript.value = '';
-        lastAudioBlob = null;
-        loadVoiceNotes();
-        setTimeout(() => (voiceSaveStatus.textContent = ''), 3000);
-      } else {
-        voiceSaveStatus.textContent = result.message || 'Error al guardar';
-      }
-    } catch {
-      voiceSaveStatus.textContent = 'Error al guardar';
-    } finally {
-      voiceSaveBtn.disabled = false;
-    }
-  });
-
   function formatDate(iso: string): string {
     try {
       return new Date(iso).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' });
     } catch {
       return iso;
     }
-  }
-
-  function statusBadge(status: string): string {
-    if (status === 'approved') return '<span class="pill" style="background:var(--forest);color:white;">✅ Listo para Claude</span>';
-    if (status === 'needs-revision') return '<span class="pill pill-clay">✏️ Necesita ajuste</span>';
-    return '<span class="pill">⏳ Pendiente de revisar</span>';
-  }
-
-  function suggestedChangesListHtml(changes: any[]): string {
-    if (!changes || !changes.length) return '';
-    return `<div class="voice-note-suggestions">
-      <div class="prompt-q" style="font-size:0.85rem;">Cambios sugeridos</div>
-      <ul>${changes.map((c) => `<li><strong>${escapeHtml(c.page)}:</strong> ${escapeHtml(c.change)}</li>`).join('')}</ul>
-    </div>`;
   }
 
   async function loadVoiceNotes() {
@@ -659,20 +606,10 @@ import Base from '../../layouts/Base.astro';
           .map(
             (n: any) => `
           <div class="voice-note-card" data-id="${n.id}">
-            <div class="voice-note-date">${formatDate(n.createdAt)} · ${statusBadge(n.status || 'pending')}</div>
+            <div class="voice-note-date">${formatDate(n.createdAt)}</div>
             <p class="voice-note-text">${escapeHtml(n.transcript)}</p>
             ${n.audioDataUrl ? `<audio controls src="${n.audioDataUrl}" style="width:100%;"></audio>` : ''}
-            ${suggestedChangesListHtml(n.suggestedChanges)}
-            ${n.revisionNote ? `<p style="font-size:0.85rem;color:var(--stone);margin-top:0.5rem;"><strong>Tu ajuste:</strong> ${escapeHtml(n.revisionNote)}</p>` : ''}
-            <div class="voice-note-actions">
-              <button type="button" class="btn-upload voice-note-approve" data-id="${n.id}">✅ Aprobar cambios</button>
-              <button type="button" class="btn-outline voice-note-revise-toggle" data-id="${n.id}" style="padding:0.55rem 1.1rem;font-size:0.82rem;">✏️ Pedir ajuste</button>
-              <button type="button" class="voice-note-remove" data-id="${n.id}">Eliminar</button>
-            </div>
-            <div class="voice-note-revise-form" id="revise-form-${n.id}" style="display:none;">
-              <textarea placeholder="¿Qué deberíamos entender distinto de esta nota?"></textarea>
-              <button type="button" class="btn-save voice-note-revise-submit" data-id="${n.id}">Enviar ajuste</button>
-            </div>
+            <button type="button" class="voice-note-remove" data-id="${n.id}">Eliminar</button>
           </div>`
           )
           .join('');
@@ -684,43 +621,6 @@ import Base from '../../layouts/Base.astro';
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ id }),
-            });
-            loadVoiceNotes();
-          });
-        });
-
-        list.querySelectorAll('.voice-note-approve').forEach((btn) => {
-          btn.addEventListener('click', async () => {
-            const id = btn.getAttribute('data-id')!;
-            (btn as HTMLButtonElement).disabled = true;
-            await fetch(`${API}/api/voice-notes-status`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id, status: 'approved' }),
-            });
-            loadVoiceNotes();
-          });
-        });
-
-        list.querySelectorAll('.voice-note-revise-toggle').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            const id = btn.getAttribute('data-id')!;
-            const form = document.getElementById(`revise-form-${id}`)!;
-            form.style.display = form.style.display === 'none' ? 'block' : 'none';
-          });
-        });
-
-        list.querySelectorAll('.voice-note-revise-submit').forEach((btn) => {
-          btn.addEventListener('click', async () => {
-            const id = btn.getAttribute('data-id')!;
-            const form = document.getElementById(`revise-form-${id}`)!;
-            const textarea = form.querySelector('textarea') as HTMLTextAreaElement;
-            if (!textarea.value.trim()) return;
-            (btn as HTMLButtonElement).disabled = true;
-            await fetch(`${API}/api/voice-notes-status`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id, status: 'needs-revision', revisionNote: textarea.value.trim() }),
             });
             loadVoiceNotes();
           });

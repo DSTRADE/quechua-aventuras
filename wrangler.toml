@@ -5,8 +5,15 @@ main = "src/worker/index.ts"
 [site]
 bucket = "dist"
 
+# Contact config
 [[kv_namespaces]]
 binding = "CONTACT_CONFIG"
+id = "ea2e80fcfdeb42339380eec946960a90"
+preview_id = "ea2e80fcfdeb42339380eec946960a90"
+
+# Static content (for serving HTML files)
+[[kv_namespaces]]
+binding = "__STATIC_CONTENT"
 id = "ea2e80fcfdeb42339380eec946960a90"
 preview_id = "ea2e80fcfdeb42339380eec946960a90"
 

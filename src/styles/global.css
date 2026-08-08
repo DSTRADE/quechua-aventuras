@@ -970,6 +970,32 @@ button:disabled { opacity: 0.65; cursor: default; transform: none !important; }
   padding: 0.8rem 1.4rem;
 }
 
+/* ---------- "Pedir cambios" (Luis-only) button ---------- */
+.tour-edit-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  margin-top: 0.9rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 14px;
+  background: var(--cream-2);
+  color: var(--forest);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 1px solid rgba(36,28,21,0.08);
+  text-align: center;
+  transition: background 0.15s;
+}
+.tour-edit-btn:hover { background: var(--gold-light); }
+
+.tour-edit-hint {
+  font-weight: 500;
+  font-size: 0.68rem;
+  color: var(--stone);
+}
+
 /* ---------- Country groups on Tours page ---------- */
 .country-heading {
   display: flex;

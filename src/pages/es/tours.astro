@@ -199,9 +199,17 @@ import Base from '../../layouts/Base.astro';
 
   function tourCard(tour: NormTour): string {
     const multi = tour.countries.length > 1;
-    const inner = `
-        ${tour.cover ? `<div class="card-image-wrap"><img src="${tour.cover}" class="card-image" alt="${tour.name}" /></div>` : ''}
-        <div class="card-content">
+
+    // NOTE: the "detail page" link and the "Pedir cambios" link must be
+    // siblings, never nested — an <a> inside another <a> is invalid HTML
+    // and browsers silently corrupt the surrounding markup to recover.
+    const image = tour.cover
+      ? `<div class="card-image-wrap">${
+          tour.url ? `<a href="${tour.url}" style="display:block;">` : ''
+        }<img src="${tour.cover}" class="card-image" alt="${tour.name}" />${tour.url ? '</a>' : ''}</div>`
+      : '';
+
+    const titleAndMeta = `
           <h3 class="card-title">${tour.name}${multi ? ' <span class="pill pill-gold" style="vertical-align:middle;">🌎 multi-país</span>' : ''}${tour.isExample ? ' <span class="pill" style="vertical-align:middle;">Ejemplo</span>' : ''}</h3>
           <p class="card-text">${tour.description.slice(0, 140)}${tour.description.length > 140 ? '…' : ''}</p>
           ${tour.route ? `<p class="card-text" style="font-size:0.85rem;color:var(--stone);">📍 ${tour.route}</p>` : ''}
@@ -213,15 +221,23 @@ import Base from '../../layouts/Base.astro';
           </div>
           <div class="card-meta" style="margin-top:0.6rem;">
             <span>${tour.daysDisplay}</span>${tour.distanceKm ? ` · <span>${tour.distanceKm}</span>` : ''}${tour.maxAltitudeM ? ` · <span>Alt. máx ${tour.maxAltitudeM}</span>` : ''}
-          </div>
-          <div style="margin-top:0.75rem;">
-            <a href="/es/panel/#tour-${tour.slug}" class="pill" style="text-decoration:none;" onclick="event.stopPropagation();">✏️ Pedir cambios en este tour</a>
-            <div style="font-size:0.72rem;color:var(--stone);margin-top:0.3rem;">(este botón es para ti, Luis)</div>
-          </div>
-        </div>`;
-    return tour.url
-      ? `<a href="${tour.url}" class="card" style="text-decoration:none;color:inherit;display:block;">${inner}</a>`
-      : `<div class="card">${inner}</div>`;
+          </div>`;
+
+    const titleBlock = tour.url
+      ? `<a href="${tour.url}" style="text-decoration:none;color:inherit;display:block;">${titleAndMeta}</a>`
+      : titleAndMeta;
+
+    return `
+      <div class="card">
+        ${image}
+        <div class="card-content">
+          ${titleBlock}
+          <a href="/es/panel/#tour-${tour.slug}" class="tour-edit-btn">
+            ✏️ Pedir cambios en este tour
+            <span class="tour-edit-hint">(este botón es para ti, Luis)</span>
+          </a>
+        </div>
+      </div>`;
   }
 
   function populateFilterOptions() {

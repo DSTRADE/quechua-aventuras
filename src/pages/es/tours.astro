@@ -82,7 +82,7 @@ import Base from '../../layouts/Base.astro';
       <a href="/es/tours/salkantay/" style="text-decoration: none; color: inherit;">
         <div class="card">
           <div class="card-image-wrap">
-            <img src="https://images.unsplash.com/photo-1587595431973-160beaf930f1?auto=format&fit=crop&w=500&q=80" alt="Salkantay" class="card-image" />
+            <img src="https://images.unsplash.com/photo-1533240332313-0db49b459ad6?auto=format&fit=crop&w=500&q=80" alt="Salkantay" class="card-image" />
           </div>
           <div class="card-content">
             <h3 class="card-title">Salkantay Trek</h3>
@@ -102,6 +102,24 @@ import Base from '../../layouts/Base.astro';
     <p>Los tours que agregues con el formulario de arriba aparecerán aquí automáticamente, agrupados por país.</p>
     <div id="dynamic-tours">
       <p style="color: var(--stone);">Cargando...</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="card-grid">
+      <img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=500&q=80" alt="Cordillera andina" style="width:100%;height:230px;object-fit:cover;border-radius:var(--radius-md);" />
+      <img src="https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=500&q=80" alt="Picos entre nubes" style="width:100%;height:230px;object-fit:cover;border-radius:var(--radius-md);" />
+      <img src="https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=500&q=80" alt="Excursionista en sendero" style="width:100%;height:230px;object-fit:cover;border-radius:var(--radius-md);" />
+    </div>
+  </section>
+
+  <section>
+    <h2>¿Algo más?</h2>
+    <div class="editable-box" data-field="otros" style="border-color: var(--clay);">
+      <div class="prompt-q">Cosas importantes sobre tus tours que no te preguntamos</div>
+      <div class="prompt-hint">Ej: tours de un día, tours privados vs. grupales, requisitos de reserva, temporada alta/baja, etc.</div>
+      <textarea placeholder="Escribe aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
     </div>
   </section>
 </Base>
@@ -197,4 +215,49 @@ import Base from '../../layouts/Base.astro';
   });
 
   loadTours();
+
+  // ---- Editable "¿Algo más?" box ----
+  const PAGE = 'tours';
+  async function loadContent() {
+    try {
+      const res = await fetch(`${API}/api/get-content?page=${PAGE}`);
+      const result = await res.json();
+      if (result.success) {
+        document.querySelectorAll('.editable-box').forEach((box) => {
+          const field = box.getAttribute('data-field');
+          const textarea = box.querySelector('textarea') as HTMLTextAreaElement;
+          if (field && result.data[field]) textarea.value = result.data[field];
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  document.querySelectorAll('.editable-box').forEach((box) => {
+    const field = box.getAttribute('data-field');
+    const textarea = box.querySelector('textarea') as HTMLTextAreaElement;
+    const btn = box.querySelector('.btn-save') as HTMLButtonElement;
+    const status = box.querySelector('.save-status') as HTMLElement;
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      status.textContent = 'Guardando...';
+      try {
+        const res = await fetch(`${API}/api/save-content`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ page: PAGE, field, value: textarea.value }),
+        });
+        const result = await res.json();
+        status.textContent = result.success ? '✓ Guardado' : 'Error al guardar';
+        setTimeout(() => (status.textContent = ''), 3000);
+      } catch {
+        status.textContent = 'Error al guardar';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+
+  loadContent();
 </script>

@@ -445,6 +445,40 @@ input:focus, textarea:focus, select:focus {
 
 textarea { resize: vertical; min-height: 130px; }
 
+.country-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.check-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border: 1.5px solid rgba(36,28,21,0.15);
+  border-radius: 100px;
+  background: white;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  margin-top: 0;
+  color: var(--ink);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.check-pill:has(input:checked) {
+  border-color: var(--clay);
+  background: rgba(181, 80, 44, 0.08);
+  color: var(--clay-dark);
+}
+
+.check-pill input[type="checkbox"] {
+  width: auto;
+  accent-color: var(--clay);
+}
+
 button[type="submit"] {
   margin-top: 1.6rem;
   padding: 0.85rem 2rem;

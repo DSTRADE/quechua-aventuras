@@ -45,8 +45,10 @@ export async function handleGetContent(request: Request, env: Env): Promise<Resp
 
 interface TourSubmission {
   name: string;
-  country: string;
+  countries: string[];
   price: string;
+  route?: string;
+  knownDays?: string;
   notes?: string;
 }
 
@@ -82,15 +84,22 @@ function json(data: unknown, status = 200): Response {
 }
 
 async function enrichTourWithAI(tour: TourSubmission, env: Env): Promise<Partial<EnrichedTour>> {
-  const prompt = `Eres un experto en trekking y turismo de aventura en Sudamérica. Un guía turístico llamado Luis quiere agregar el siguiente tour a su sitio web. Dame información realista y precisa basada en lo que se conoce públicamente sobre este tour. Si no estás seguro de un dato exacto, da una estimación razonable típica para ese tipo de tour.
+  const multiCountry = tour.countries.length > 1;
+  const daysHint = tour.knownDays
+    ? `Luis confirma que el tour dura ${tour.knownDays} días — usa este número exacto, no lo cambies.`
+    : 'Luis no especificó la duración exacta — estima un número de días típico para este tipo de tour.';
+
+  const prompt = `Eres un experto en trekking y turismo de aventura en Sudamérica. Un guía turístico llamado Luis quiere agregar el siguiente tour a su sitio web. Dame información realista y precisa basada en lo que se conoce públicamente sobre este tour y ruta. Si no estás seguro de un dato exacto, da una estimación razonable típica para ese tipo de tour.
 
 Tour: "${tour.name}"
-País: ${tour.country}
+País(es): ${tour.countries.join(', ')}${multiCountry ? ' — este tour CRUZA FRONTERAS entre estos países, la ruta y el itinerario deben reflejarlo (ej. cruces fronterizos, cambios de país entre etapas)' : ''}
+Ruta (inicio → fin): ${tour.route || '(no especificada — infiere una ruta típica entre las zonas más conocidas de estos países)'}
+${daysHint}
 Notas adicionales de Luis: ${tour.notes || '(ninguna)'}
 
 Responde ÚNICAMENTE con un objeto JSON válido (sin markdown, sin texto adicional) con esta forma exacta:
 {
-  "description": "2-3 párrafos en español describiendo el tour, qué lo hace especial, paisajes y experiencia",
+  "description": "2-3 párrafos en español describiendo el tour, qué lo hace especial, paisajes y experiencia${multiCountry ? ', mencionando el cruce entre países' : ''}",
   "days": "número de días y noches, ej '5 días / 4 noches'",
   "distanceKm": "distancia total aproximada, ej '60 km'",
   "elevationGainM": "ganancia de elevación total aproximada, ej '2400 m'",
@@ -99,7 +108,7 @@ Responde ÚNICAMENTE con un objeto JSON válido (sin markdown, sin texto adicion
   "bestSeason": "mejor época del año, ej 'Mayo a Septiembre'",
   "highlights": ["punto destacado 1", "punto destacado 2", "punto destacado 3", "punto destacado 4"],
   "itinerary": [
-    {"day": 1, "title": "título corto del día", "detail": "1-2 frases describiendo el día"},
+    {"day": 1, "title": "título corto del día", "detail": "1-2 frases describiendo el día, incluyendo el país si el tour es multi-país"},
     {"day": 2, "title": "...", "detail": "..."}
   ]
 }`;
@@ -133,16 +142,18 @@ export async function handleSubmitTour(request: Request, env: Env): Promise<Resp
     const formData = await request.formData();
     const submission: TourSubmission = {
       name: (formData.get('name') as string) || '',
-      country: (formData.get('country') as string) || '',
+      countries: formData.getAll('countries').map((c) => c as string).filter(Boolean),
       price: (formData.get('price') as string) || '',
+      route: (formData.get('route') as string) || '',
+      knownDays: (formData.get('knownDays') as string) || '',
       notes: (formData.get('notes') as string) || '',
     };
 
-    if (!submission.name || !submission.country || !submission.price) {
-      return json({ success: false, message: 'Falta el nombre, país o precio del tour' }, 400);
+    if (!submission.name || submission.countries.length === 0 || !submission.price) {
+      return json({ success: false, message: 'Falta el nombre, al menos un país, o el precio del tour' }, 400);
     }
 
-    const slug = slugify(`${submission.name}-${submission.country}`);
+    const slug = slugify(`${submission.name}-${submission.countries.join('-')}`);
 
     let enrichment: Partial<EnrichedTour> = {};
     let aiGenerated = false;

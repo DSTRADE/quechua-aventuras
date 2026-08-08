@@ -14,7 +14,8 @@ import Base from '../../layouts/Base.astro';
   <section>
     <div class="explainer-banner">
       <h3>🤖 Agregar un tour es muy simple</h3>
-      <p>Solo necesitamos tres datos: el <strong>nombre del tour</strong>, el <strong>país</strong> y el <strong>precio</strong>. Con eso, el sitio investiga automáticamente y sugiere la descripción, duración, distancia, elevación, altitud máxima, dificultad e itinerario típico de ese tour.</p>
+      <p>Solo necesitamos el <strong>nombre del tour</strong>, el o los <strong>países</strong> y el <strong>precio</strong> — un minuto o dos como mucho. Con eso, el sitio investiga automáticamente y sugiere la descripción, duración, distancia, elevación, altitud máxima, dificultad e itinerario típico de ese tour.</p>
+      <p>¿El tour cruza de un país a otro? Marca todos los países por los que pasa, y si sabes el punto de inicio/fin o la cantidad de días, agrégalos — eso ayuda mucho a que la ruta e itinerario generados sean precisos. Todo lo demás es opcional.</p>
       <p>Tú solo tienes que revisar lo que se generó y corregir lo que haga falta — mucho más rápido que escribir todo desde cero.</p>
     </div>
   </section>
@@ -25,20 +26,25 @@ import Base from '../../layouts/Base.astro';
       <label for="name">Nombre del tour</label>
       <input type="text" id="name" name="name" required placeholder="Ej: Circuito Ausangate" />
 
-      <label for="country">País</label>
-      <select id="country" name="country" required>
-        <option value="">Selecciona un país</option>
-        <option value="Perú">Perú</option>
-        <option value="Bolivia">Bolivia</option>
-        <option value="Chile">Chile</option>
-        <option value="Argentina">Argentina</option>
-        <option value="Ecuador">Ecuador</option>
-        <option value="Colombia">Colombia</option>
-        <option value="Otro">Otro</option>
-      </select>
+      <label>País(es) — marca todos los que aplique</label>
+      <div class="country-checks">
+        <label class="check-pill"><input type="checkbox" name="countries" value="Perú" /> 🇵🇪 Perú</label>
+        <label class="check-pill"><input type="checkbox" name="countries" value="Bolivia" /> 🇧🇴 Bolivia</label>
+        <label class="check-pill"><input type="checkbox" name="countries" value="Chile" /> 🇨🇱 Chile</label>
+        <label class="check-pill"><input type="checkbox" name="countries" value="Argentina" /> 🇦🇷 Argentina</label>
+        <label class="check-pill"><input type="checkbox" name="countries" value="Ecuador" /> 🇪🇨 Ecuador</label>
+        <label class="check-pill"><input type="checkbox" name="countries" value="Colombia" /> 🇨🇴 Colombia</label>
+        <label class="check-pill"><input type="checkbox" name="countries" value="Otro" /> 🌎 Otro</label>
+      </div>
 
       <label for="price">Precio por persona (USD)</label>
       <input type="text" id="price" name="price" required placeholder="Ej: 450" />
+
+      <label for="route">Punto de inicio → punto final (opcional, pero muy útil si cruza países)</label>
+      <input type="text" id="route" name="route" placeholder="Ej: Cusco → La Paz" />
+
+      <label for="knownDays">¿Cuántos días dura? (opcional — déjalo en blanco si no lo sabes exacto)</label>
+      <input type="number" id="knownDays" name="knownDays" min="1" placeholder="Ej: 7" />
 
       <label for="notes">Notas adicionales (opcional)</label>
       <textarea id="notes" name="notes" placeholder="Cualquier detalle que quieras que tengamos en cuenta — o deja en blanco y lo investigamos por ti."></textarea>
@@ -135,14 +141,21 @@ import Base from '../../layouts/Base.astro';
     return map[country] || '🌎';
   };
 
+  function countryPills(countries: string[]): string {
+    return (countries || []).map((c) => `<span class="pill">${flagFor(c)} ${c}</span>`).join('');
+  }
+
   function tourCard(tour: any): string {
+    const countries: string[] = tour.countries || [];
+    const multi = countries.length > 1;
     return `
       <div class="card">
         <div class="card-content">
-          <h3 class="card-title">${tour.name}</h3>
+          <h3 class="card-title">${tour.name}${multi ? ' <span class="pill pill-gold" style="vertical-align:middle;">🌎 multi-país</span>' : ''}</h3>
           <p class="card-text">${(tour.description || '').slice(0, 140)}${tour.description && tour.description.length > 140 ? '…' : ''}</p>
+          ${tour.route ? `<p class="card-text" style="font-size:0.85rem;color:var(--stone);">📍 ${tour.route}</p>` : ''}
           <div class="card-meta">
-            <span class="pill">${flagFor(tour.country)} ${tour.country}</span>
+            ${countryPills(countries)}
             <span class="pill pill-clay">${tour.difficulty || 'Por confirmar'}</span>
             <span class="pill pill-gold">$${tour.price}</span>
             ${tour.aiGenerated ? '<span class="pill pill-ai">✨ detalles sugeridos por IA</span>' : ''}
@@ -164,10 +177,14 @@ import Base from '../../layouts/Base.astro';
         return;
       }
 
+      // A multi-country tour appears under every country it touches
       const byCountry: Record<string, any[]> = {};
       for (const tour of result.tours) {
-        byCountry[tour.country] = byCountry[tour.country] || [];
-        byCountry[tour.country].push(tour);
+        const countries: string[] = tour.countries && tour.countries.length ? tour.countries : ['Otro'];
+        for (const country of countries) {
+          byCountry[country] = byCountry[country] || [];
+          byCountry[country].push(tour);
+        }
       }
 
       let html = '';
@@ -187,6 +204,14 @@ import Base from '../../layouts/Base.astro';
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    const anyCountryChecked = form.querySelectorAll('input[name="countries"]:checked').length > 0;
+    if (!anyCountryChecked) {
+      statusEl.style.color = 'var(--clay)';
+      statusEl.textContent = 'Marca al menos un país.';
+      return;
+    }
+
     submitBtn.disabled = true;
     submitBtn.textContent = 'Investigando y generando detalles... (puede tardar unos segundos)';
     statusEl.textContent = '';

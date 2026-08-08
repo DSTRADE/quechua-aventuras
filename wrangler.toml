@@ -27,6 +27,11 @@ binding = "SITE_DATA"
 id = "ea2e80fcfdeb42339380eec946960a90"
 preview_id = "ea2e80fcfdeb42339380eec946960a90"
 
+# Workers AI — used to transcribe Luis's voice notes (Whisper model),
+# no separate API key needed.
+[ai]
+binding = "AI"
+
 [build]
 command = "npm run build"
 cwd = "./"

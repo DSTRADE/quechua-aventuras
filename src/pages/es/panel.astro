@@ -12,6 +12,7 @@ import Base from '../../layouts/Base.astro';
   </div>
 
   <nav class="jump-nav" aria-label="Ir a sección">
+    <a href="#voz">🎙️ Voz</a>
     <a href="#estado">📊 Estado</a>
     <a href="#publicacion">🚀 Publicar</a>
     <a href="#diseno">🎨 Diseño</a>
@@ -27,6 +28,38 @@ import Base from '../../layouts/Base.astro';
       <p>A medida que construyamos el sitio y las demás páginas vayan tomando forma, aquí es donde nos dices qué te gusta y qué cambiarías — para asegurarnos de que quedes conforme con todo antes de publicarlo.</p>
       <p>Puede ser cualquier cosa: desde detalles de <strong>diseño</strong> (colores, tipografía, fotos, cómo se ve en tu celular) hasta el <strong>contenido escrito</strong> de cada página o de un <strong>tour</strong> en particular.</p>
       <p>No hace falta ser técnico ni específico — con que nos cuentes qué no te convence, nosotros nos encargamos de encontrar la solución.</p>
+    </div>
+  </section>
+
+  <section id="voz">
+    <div class="section-head">
+      <span class="eyebrow">Habla en vez de escribir</span>
+      <h2>Deja una nota de voz</h2>
+    </div>
+    <p>¿Prefieres hablar? Graba tu feedback directamente desde el celular — lo transcribimos automáticamente y queda guardado aquí para que lo revisemos y hagamos los cambios que pidas.</p>
+
+    <div class="voice-recorder">
+      <div class="voice-recorder-controls">
+        <button type="button" id="voice-record-btn" class="btn-upload">🎙️ Grabar nota de voz</button>
+        <span id="voice-timer" class="voice-timer" style="display:none;">● 0:00</span>
+      </div>
+      <div id="voice-status" style="margin-top:0.75rem;font-weight:600;"></div>
+
+      <div id="voice-review" class="voice-review" style="display:none;">
+        <div class="prompt-q">Revisa la transcripción antes de guardar</div>
+        <div class="prompt-hint">Corrige cualquier palabra que se haya transcrito mal — así llega perfecto para que lo leamos.</div>
+        <textarea id="voice-transcript" placeholder="Transcripción..."></textarea>
+        <audio id="voice-audio-preview" controls style="width:100%;margin-top:0.75rem;"></audio>
+        <div class="save-row">
+          <button type="button" id="voice-save-btn" class="btn-save">Guardar nota de voz</button>
+          <button type="button" id="voice-discard-btn" class="btn-outline" style="padding:0.6rem 1.3rem;">Descartar</button>
+          <span id="voice-save-status" class="save-status"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="voice-notes-list" class="voice-notes-list" style="margin-top:1.5rem;">
+      <p class="photo-empty">Cargando notas de voz...</p>
     </div>
   </section>
 
@@ -166,6 +199,10 @@ import Base from '../../layouts/Base.astro';
   const API = 'https://quechua-aventuras.dstevo191.workers.dev';
   const PAGE = 'feedback';
 
+  function escapeHtml(s: string): string {
+    return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+  }
+
   async function loadContent() {
     try {
       const res = await fetch(`${API}/api/get-content?page=${PAGE}`);
@@ -278,6 +315,7 @@ import Base from '../../layouts/Base.astro';
   }
 
   const CHECKLIST: ChecklistGroup[] = [
+    { label: 'Notas de voz', kind: 'count', countUrl: `${API}/api/voice-notes`, countKey: 'notes', countLabel: 'nota(s) de voz grabada(s)' },
     {
       label: 'Inicio',
       kind: 'text',
@@ -439,4 +477,199 @@ import Base from '../../layouts/Base.astro';
   });
 
   loadPublishStatus();
+
+  // ---- Voice notes ----
+  const recordBtn = document.getElementById('voice-record-btn') as HTMLButtonElement;
+  const voiceTimer = document.getElementById('voice-timer')!;
+  const voiceStatus = document.getElementById('voice-status')!;
+  const voiceReview = document.getElementById('voice-review')!;
+  const voiceTranscript = document.getElementById('voice-transcript') as HTMLTextAreaElement;
+  const voiceAudioPreview = document.getElementById('voice-audio-preview') as HTMLAudioElement;
+  const voiceSaveBtn = document.getElementById('voice-save-btn') as HTMLButtonElement;
+  const voiceDiscardBtn = document.getElementById('voice-discard-btn') as HTMLButtonElement;
+  const voiceSaveStatus = document.getElementById('voice-save-status')!;
+
+  let mediaRecorder: MediaRecorder | null = null;
+  let audioChunks: BlobPart[] = [];
+  let recordingSeconds = 0;
+  let timerInterval: ReturnType<typeof setInterval> | null = null;
+  let lastAudioBlob: Blob | null = null;
+
+  function formatTimer(s: number): string {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `● ${m}:${sec.toString().padStart(2, '0')}`;
+  }
+
+  function blobToDataUrl(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function startRecording() {
+    if (!navigator.mediaDevices || !window.MediaRecorder) {
+      voiceStatus.style.color = 'var(--clay)';
+      voiceStatus.textContent = 'Tu navegador no permite grabar audio. Prueba desde Chrome o Safari actualizado.';
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(audioChunks, { type: mediaRecorder?.mimeType || 'audio/webm' });
+        lastAudioBlob = blob;
+        await transcribeAndReview(blob);
+      };
+      mediaRecorder.start();
+
+      recordingSeconds = 0;
+      voiceTimer.style.display = 'inline';
+      voiceTimer.textContent = formatTimer(0);
+      timerInterval = setInterval(() => {
+        recordingSeconds++;
+        voiceTimer.textContent = formatTimer(recordingSeconds);
+      }, 1000);
+
+      recordBtn.textContent = '⏹ Detener grabación';
+      recordBtn.classList.add('recording');
+      voiceStatus.style.color = 'var(--forest)';
+      voiceStatus.textContent = 'Grabando... toca "Detener" cuando termines.';
+      voiceReview.style.display = 'none';
+    } catch (e) {
+      voiceStatus.style.color = 'var(--clay)';
+      voiceStatus.textContent = 'No pudimos acceder al micrófono. Revisa los permisos del navegador.';
+    }
+  }
+
+  function stopRecording() {
+    if (timerInterval) clearInterval(timerInterval);
+    voiceTimer.style.display = 'none';
+    recordBtn.textContent = '🎙️ Grabar nota de voz';
+    recordBtn.classList.remove('recording');
+    recordBtn.disabled = true;
+    voiceStatus.style.color = 'var(--forest)';
+    voiceStatus.textContent = 'Transcribiendo tu nota...';
+    mediaRecorder?.stop();
+  }
+
+  async function transcribeAndReview(blob: Blob) {
+    try {
+      const fd = new FormData();
+      fd.append('audio', blob, 'nota.webm');
+      const res = await fetch(`${API}/api/transcribe-voice-note`, { method: 'POST', body: fd });
+      const result = await res.json();
+      recordBtn.disabled = false;
+
+      if (result.success) {
+        voiceStatus.textContent = '';
+        voiceTranscript.value = result.transcript;
+        voiceAudioPreview.src = URL.createObjectURL(blob);
+        voiceReview.style.display = 'block';
+      } else {
+        voiceStatus.style.color = 'var(--clay)';
+        voiceStatus.textContent = result.message || 'No se pudo transcribir la nota.';
+      }
+    } catch {
+      recordBtn.disabled = false;
+      voiceStatus.style.color = 'var(--clay)';
+      voiceStatus.textContent = 'Error al transcribir. Revisa tu conexión e intenta de nuevo.';
+    }
+  }
+
+  recordBtn.addEventListener('click', () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  });
+
+  voiceDiscardBtn.addEventListener('click', () => {
+    voiceReview.style.display = 'none';
+    voiceTranscript.value = '';
+    lastAudioBlob = null;
+    voiceStatus.textContent = '';
+  });
+
+  voiceSaveBtn.addEventListener('click', async () => {
+    if (!voiceTranscript.value.trim()) return;
+    voiceSaveBtn.disabled = true;
+    voiceSaveStatus.textContent = 'Guardando...';
+    try {
+      const audioDataUrl = lastAudioBlob ? await blobToDataUrl(lastAudioBlob) : null;
+      const res = await fetch(`${API}/api/voice-notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript: voiceTranscript.value.trim(), audioDataUrl }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        voiceSaveStatus.textContent = '✓ Guardada';
+        voiceReview.style.display = 'none';
+        voiceTranscript.value = '';
+        lastAudioBlob = null;
+        loadVoiceNotes();
+        setTimeout(() => (voiceSaveStatus.textContent = ''), 3000);
+      } else {
+        voiceSaveStatus.textContent = result.message || 'Error al guardar';
+      }
+    } catch {
+      voiceSaveStatus.textContent = 'Error al guardar';
+    } finally {
+      voiceSaveBtn.disabled = false;
+    }
+  });
+
+  function formatDate(iso: string): string {
+    try {
+      return new Date(iso).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' });
+    } catch {
+      return iso;
+    }
+  }
+
+  async function loadVoiceNotes() {
+    const list = document.getElementById('voice-notes-list')!;
+    try {
+      const res = await fetch(`${API}/api/voice-notes`);
+      const result = await res.json();
+      if (result.success && result.notes.length) {
+        list.innerHTML = result.notes
+          .map(
+            (n: any) => `
+          <div class="voice-note-card" data-id="${n.id}">
+            <div class="voice-note-date">${formatDate(n.createdAt)}</div>
+            <p class="voice-note-text">${escapeHtml(n.transcript)}</p>
+            ${n.audioDataUrl ? `<audio controls src="${n.audioDataUrl}" style="width:100%;"></audio>` : ''}
+            <button type="button" class="voice-note-remove" data-id="${n.id}">Eliminar</button>
+          </div>`
+          )
+          .join('');
+        list.querySelectorAll('.voice-note-remove').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id')!;
+            await fetch(`${API}/api/delete-voice-note`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id }),
+            });
+            loadVoiceNotes();
+          });
+        });
+      } else {
+        list.innerHTML = '<p class="photo-empty">Todavía no hay notas de voz.</p>';
+      }
+    } catch {
+      list.innerHTML = '<p class="photo-empty">No se pudieron cargar las notas de voz.</p>';
+    }
+  }
+
+  loadVoiceNotes();
 </script>

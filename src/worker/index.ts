@@ -13,6 +13,10 @@ import {
   handleDeleteTestimonial,
   handleGetSiteSettings,
   handleSaveSiteSettings,
+  handleTranscribeVoiceNote,
+  handleSaveVoiceNote,
+  handleGetVoiceNotes,
+  handleDeleteVoiceNote,
 } from './site-data-handler';
 
 export interface Env {
@@ -21,6 +25,7 @@ export interface Env {
   OPENROUTER_API_KEY: string;
   __STATIC_CONTENT: KVNamespace;
   SITE_DATA: KVNamespace;
+  AI: any;
 }
 
 const corsHeaders = {
@@ -105,6 +110,22 @@ export default {
 
     if (pathname === '/api/site-settings' && request.method === 'POST') {
       return withCors(await handleSaveSiteSettings(request, env));
+    }
+
+    if (pathname === '/api/transcribe-voice-note' && request.method === 'POST') {
+      return withCors(await handleTranscribeVoiceNote(request, env));
+    }
+
+    if (pathname === '/api/voice-notes' && request.method === 'POST') {
+      return withCors(await handleSaveVoiceNote(request, env));
+    }
+
+    if (pathname === '/api/voice-notes' && request.method === 'GET') {
+      return withCors(await handleGetVoiceNotes(request, env));
+    }
+
+    if (pathname === '/api/delete-voice-note' && request.method === 'POST') {
+      return withCors(await handleDeleteVoiceNote(request, env));
     }
 
     if (pathname === '/health') {

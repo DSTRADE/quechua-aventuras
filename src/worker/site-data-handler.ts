@@ -6,6 +6,7 @@ export interface Env {
   SITE_DATA: KVNamespace;
   OPENROUTER_API_KEY: string;
   RESEND_API_KEY: string;
+  AI: any;
 }
 
 const ADMIN_EMAIL = 'dstevo191@gmail.com';
@@ -364,6 +365,103 @@ export async function handleDeletePhoto(request: Request, env: Env): Promise<Res
   } catch (e) {
     console.error('delete-photo error', e);
     return json({ success: false, message: 'Error al eliminar la foto' }, 500);
+  }
+}
+
+// ---------- Voice notes (Luis speaks his feedback, Workers AI transcribes it) ----------
+
+const MAX_AUDIO_BYTES = 15 * 1024 * 1024; // 15MB
+
+export async function handleTranscribeVoiceNote(request: Request, env: Env): Promise<Response> {
+  try {
+    const formData = await request.formData();
+    const audio = formData.get('audio') as File | null;
+    if (!audio) return json({ success: false, message: 'Falta el audio' }, 400);
+    if (audio.size > MAX_AUDIO_BYTES) {
+      return json({ success: false, message: 'La nota de voz es demasiado larga (máx. 15MB)' }, 400);
+    }
+
+    const buf = await audio.arrayBuffer();
+    const result = await env.AI.run('@cf/openai/whisper', { audio: [...new Uint8Array(buf)] });
+    const transcript = (result && (result.text || result.result?.text) || '').trim();
+
+    if (!transcript) {
+      return json({ success: false, message: 'No se pudo transcribir el audio. Intenta grabar de nuevo.' }, 500);
+    }
+
+    return json({ success: true, transcript });
+  } catch (e) {
+    console.error('transcribe-voice-note error', e);
+    return json({ success: false, message: 'Error al transcribir la nota de voz' }, 500);
+  }
+}
+
+export async function handleSaveVoiceNote(request: Request, env: Env): Promise<Response> {
+  try {
+    const body = await request.json<{ transcript: string; audioDataUrl?: string }>();
+    if (!body.transcript || !body.transcript.trim()) {
+      return json({ success: false, message: 'Falta el texto de la nota' }, 400);
+    }
+
+    const note = {
+      id: genId(),
+      transcript: body.transcript.trim(),
+      audioDataUrl: body.audioDataUrl || null,
+      createdAt: new Date().toISOString(),
+    };
+
+    await env.SITE_DATA.put(`voicenote:${note.id}`, JSON.stringify(note));
+    const indexRaw = await env.SITE_DATA.get('voicenotes:index');
+    const index: string[] = indexRaw ? JSON.parse(indexRaw) : [];
+    index.push(note.id);
+    await env.SITE_DATA.put('voicenotes:index', JSON.stringify(index));
+
+    await notifyAdmin(
+      env,
+      `Quechua Aventuras — Luis dejó una nota de voz`,
+      `<h2>Nueva nota de voz (transcrita)</h2>
+       <blockquote style="border-left:3px solid #D9A544;padding-left:12px;color:#241C15;">${escapeHtmlServer(note.transcript)}</blockquote>
+       <p style="font-size:12px;color:#666;">Revisa el Panel de Control para escuchar el audio original y hacer los cambios que pida.</p>`
+    );
+
+    return json({ success: true, note });
+  } catch (e) {
+    console.error('save-voice-note error', e);
+    return json({ success: false, message: 'Error al guardar la nota de voz' }, 500);
+  }
+}
+
+export async function handleGetVoiceNotes(_request: Request, env: Env): Promise<Response> {
+  try {
+    const indexRaw = await env.SITE_DATA.get('voicenotes:index');
+    const index: string[] = indexRaw ? JSON.parse(indexRaw) : [];
+    const notes = [];
+    for (const id of index) {
+      const raw = await env.SITE_DATA.get(`voicenote:${id}`);
+      if (raw) notes.push(JSON.parse(raw));
+    }
+    notes.sort((a: any, b: any) => (a.createdAt < b.createdAt ? 1 : -1));
+    return json({ success: true, notes });
+  } catch (e) {
+    console.error('get-voice-notes error', e);
+    return json({ success: false, message: 'Error al cargar las notas de voz' }, 500);
+  }
+}
+
+export async function handleDeleteVoiceNote(request: Request, env: Env): Promise<Response> {
+  try {
+    const body = await request.json<{ id: string }>();
+    if (!body.id) return json({ success: false, message: 'Falta el id' }, 400);
+
+    await env.SITE_DATA.delete(`voicenote:${body.id}`);
+    const indexRaw = await env.SITE_DATA.get('voicenotes:index');
+    const index: string[] = indexRaw ? JSON.parse(indexRaw) : [];
+    await env.SITE_DATA.put('voicenotes:index', JSON.stringify(index.filter((i) => i !== body.id)));
+
+    return json({ success: true });
+  } catch (e) {
+    console.error('delete-voice-note error', e);
+    return json({ success: false, message: 'Error al eliminar la nota de voz' }, 500);
   }
 }
 

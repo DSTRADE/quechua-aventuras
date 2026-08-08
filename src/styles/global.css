@@ -507,6 +507,40 @@ section { margin-bottom: 3.5rem; }
 
 .photo-empty { color: var(--stone); font-size: 0.9rem; }
 
+/* ---------- Quick-jump nav (Panel de Control) ---------- */
+.jump-nav {
+  position: sticky;
+  top: 76px;
+  z-index: 150;
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.75rem 0;
+  margin-bottom: 1rem;
+  background: var(--cream);
+  border-bottom: 1px solid rgba(36,28,21,0.08);
+  scrollbar-width: none;
+}
+.jump-nav::-webkit-scrollbar { display: none; }
+
+.jump-nav a {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 1.1rem;
+  border-radius: 100px;
+  background: white;
+  border: 1px solid rgba(36,28,21,0.1);
+  color: var(--forest);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.jump-nav a:hover { background: var(--forest); color: white; border-color: var(--forest); }
+
 /* ---------- Status checklist ---------- */
 .status-checklist { display: flex; flex-direction: column; gap: 1.5rem; }
 
@@ -841,6 +875,8 @@ footer p { color: rgba(255,255,255,0.6); font-size: 0.88rem; margin-bottom: 0; }
   .itinerary-day { gap: 0.85rem; }
   .country-checks { gap: 0.5rem; }
   form { max-width: 100%; }
+  .jump-nav { top: 62px; padding: 0.6rem 0; }
+  .jump-nav a { padding: 0.5rem 0.9rem; font-size: 0.8rem; }
 }
 
 @media (max-width: 420px) {

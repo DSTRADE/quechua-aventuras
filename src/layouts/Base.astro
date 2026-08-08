@@ -15,7 +15,7 @@ const navLinks = {
     about: '/es/nosotros/',
     business: '/es/negocio/',
     tours: '/es/tours/',
-    feedback: '/es/feedback/',
+    panel: '/es/panel/',
     contact: '/es/contacto/',
   },
   en: {
@@ -23,7 +23,7 @@ const navLinks = {
     about: '/en/about/',
     business: '/en/business/',
     tours: '/en/tours/',
-    feedback: '/en/feedback/',
+    panel: '/en/panel/',
     contact: '/en/contact/',
   },
 };
@@ -53,7 +53,7 @@ const nav = navLinks[currentLocale as keyof typeof navLinks] || navLinks.es;
           <li><a href={nav.about}>{currentLocale === 'es' ? 'Nosotros' : 'About'}</a></li>
           <li><a href={nav.business}>{currentLocale === 'es' ? 'Filosofía' : 'Business'}</a></li>
           <li><a href={nav.tours}>{currentLocale === 'es' ? 'Tours' : 'Tours'}</a></li>
-          <li><a href={nav.feedback}>{currentLocale === 'es' ? 'Feedback' : 'Feedback'}</a></li>
+          <li><a href={nav.panel}>{currentLocale === 'es' ? 'Panel' : 'Panel'}</a></li>
           <li><a href={nav.contact} class="nav-cta">{currentLocale === 'es' ? 'Contacto' : 'Contact'}</a></li>
         </ul>
       </div>

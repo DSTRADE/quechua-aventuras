@@ -2,25 +2,34 @@
 import Base from '../../layouts/Base.astro';
 ---
 
-<Base title="Feedback de Luis">
-  <div class="hero" style="min-height: 38vh; background-image: url('https://images.unsplash.com/photo-1533130061792-64b345e4a833?auto=format&fit=crop&w=1800&q=80');">
+<Base title="Panel de Control">
+  <div class="hero" style="min-height: 34vh; background-image: url('https://images.unsplash.com/photo-1533130061792-64b345e4a833?auto=format&fit=crop&w=1800&q=80');">
     <div class="hero-content">
-      <span class="eyebrow">Tu opinión</span>
-      <h1>Feedback de Luis</h1>
-      <p class="lede">Este es tu espacio para pedir cambios sobre el sitio, desde el diseño hasta el contenido.</p>
+      <span class="eyebrow">Tu espacio</span>
+      <h1>Panel de Control</h1>
+      <p class="lede">Aquí revisas el progreso del sitio y pides los cambios que quieras — de diseño, de una página entera, o de un tour específico.</p>
     </div>
   </div>
 
+  <nav class="jump-nav" aria-label="Ir a sección">
+    <a href="#estado">📊 Estado</a>
+    <a href="#diseno">🎨 Diseño</a>
+    <a href="#paginas">📄 Páginas</a>
+    <a href="#tours">🥾 Tours</a>
+    <a href="#contacto">📞 Contacto</a>
+    <a href="#otro">💬 Otro</a>
+  </nav>
+
   <section>
     <div class="explainer-banner">
-      <h3>💬 ¿Para qué es esta página?</h3>
+      <h3>💬 ¿Para qué es este panel?</h3>
       <p>A medida que construyamos el sitio y las demás páginas vayan tomando forma, aquí es donde nos dices qué te gusta y qué cambiarías — para asegurarnos de que quedes conforme con todo antes de publicarlo.</p>
-      <p>Puede ser cualquier cosa: desde detalles de <strong>diseño</strong> (colores, tipografía, fotos, cómo se ve en tu celular) hasta el <strong>contenido escrito</strong> de cada página (algo que no suena como tú, información que falta o está mal, un tour que hay que corregir).</p>
+      <p>Puede ser cualquier cosa: desde detalles de <strong>diseño</strong> (colores, tipografía, fotos, cómo se ve en tu celular) hasta el <strong>contenido escrito</strong> de cada página o de un <strong>tour</strong> en particular.</p>
       <p>No hace falta ser técnico ni específico — con que nos cuentes qué no te convence, nosotros nos encargamos de encontrar la solución.</p>
     </div>
   </section>
 
-  <section>
+  <section id="estado">
     <div class="section-head">
       <span class="eyebrow">Progreso</span>
       <h2>Estado del sitio</h2>
@@ -31,8 +40,11 @@ import Base from '../../layouts/Base.astro';
     </div>
   </section>
 
-  <section>
-    <h2>Diseño y apariencia</h2>
+  <section id="diseno">
+    <div class="section-head">
+      <span class="eyebrow">Diseño y apariencia</span>
+      <h2>¿El sitio te representa?</h2>
+    </div>
     <p>¿Los colores, la tipografía o el estilo general del sitio te representan? Este es el lugar para decirlo.</p>
 
     <div class="editable-box" data-field="diseno_colores">
@@ -55,8 +67,11 @@ import Base from '../../layouts/Base.astro';
     </div>
   </section>
 
-  <section>
-    <h2>Contenido por página</h2>
+  <section id="paginas">
+    <div class="section-head">
+      <span class="eyebrow">Contenido por página</span>
+      <h2>Pide cambios en una página</h2>
+    </div>
     <p>Si algo escrito en una página específica no te convence o falta información, cuéntanos aquí.</p>
 
     <div class="editable-box" data-field="contenido_inicio">
@@ -76,22 +91,43 @@ import Base from '../../layouts/Base.astro';
       <textarea placeholder="Escribe tu feedback sobre esta página..."></textarea>
       <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
     </div>
+  </section>
 
-    <div class="editable-box" data-field="contenido_tours">
-      <div class="prompt-q">Página de Tours (catálogo y tours individuales)</div>
-      <textarea placeholder="Escribe tu feedback sobre esta página..."></textarea>
-      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+  <section id="tours">
+    <div class="section-head">
+      <span class="eyebrow">Tus tours</span>
+      <h2>Pide cambios en un tour</h2>
+    </div>
+    <p>Cada tour tiene su propio cuadro de texto abajo, para que el feedback quede bien organizado. Si viniste desde el botón "Pedir cambios" de un tour, esta página baja directo a su cuadro.</p>
+
+    <div id="tour-feedback-list">
+      <p class="photo-empty">Cargando tours...</p>
     </div>
 
-    <div class="editable-box" data-field="contenido_contacto">
-      <div class="prompt-q">Página de Contacto</div>
-      <textarea placeholder="Escribe tu feedback sobre esta página..."></textarea>
+    <div class="editable-box" data-field="catalogo_general" style="margin-top: 1.5rem;">
+      <div class="prompt-q">Algo general sobre el catálogo o un tour que no está en la lista</div>
+      <textarea placeholder="Escribe aquí..."></textarea>
       <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
     </div>
   </section>
 
-  <section>
-    <h2>¿Algo más?</h2>
+  <section id="contacto">
+    <div class="section-head">
+      <span class="eyebrow">Contacto</span>
+      <h2>Pide cambios en Contacto</h2>
+    </div>
+    <div class="editable-box" data-field="contenido_contacto">
+      <div class="prompt-q">¿Algo que cambiar en la página o en cómo los clientes te contactan?</div>
+      <textarea placeholder="Escribe aquí..."></textarea>
+      <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+    </div>
+  </section>
+
+  <section id="otro">
+    <div class="section-head">
+      <span class="eyebrow">¿Algo más?</span>
+      <h2>Cualquier otra cosa</h2>
+    </div>
     <div class="editable-box" data-field="general" style="border-color: var(--clay);">
       <div class="prompt-q">Cualquier otra cosa que quieras pedir o corregir</div>
       <div class="prompt-hint">No hay pregunta demasiado pequeña ni demasiado grande — desde "cambia esta palabra" hasta "reorganicemos toda la página."</div>
@@ -121,7 +157,7 @@ import Base from '../../layouts/Base.astro';
     }
   }
 
-  document.querySelectorAll('.editable-box').forEach((box) => {
+  function wireBox(box: Element) {
     const field = box.getAttribute('data-field');
     const textarea = box.querySelector('textarea') as HTMLTextAreaElement;
     const btn = box.querySelector('.btn-save') as HTMLButtonElement;
@@ -144,9 +180,66 @@ import Base from '../../layouts/Base.astro';
         btn.disabled = false;
       }
     });
-  });
+  }
 
+  document.querySelectorAll('.editable-box').forEach(wireBox);
   loadContent();
+
+  // ---- Per-tour feedback boxes ----
+  const STATIC_TOURS = [
+    { slug: 'ausangate-circuit', name: 'Circuito Ausangate' },
+    { slug: 'siete-lagunas', name: 'Siete Lagunas de Cusco' },
+    { slug: 'salkantay', name: 'Salkantay Trek' },
+  ];
+
+  async function buildTourBoxes() {
+    const list = document.getElementById('tour-feedback-list')!;
+    let tours: { slug: string; name: string }[] = [...STATIC_TOURS];
+    try {
+      const res = await fetch(`${API}/api/tours`);
+      const result = await res.json();
+      if (result.success) {
+        for (const t of result.tours) tours.push({ slug: t.slug, name: t.name });
+      }
+    } catch {
+      // fall back to static tours only
+    }
+
+    list.innerHTML = tours
+      .map(
+        (t) => `
+      <div class="editable-box" data-field="tour_${t.slug}" id="tour-${t.slug}">
+        <div class="prompt-q">${t.name}</div>
+        <textarea placeholder="Escribe tu feedback sobre este tour..."></textarea>
+        <div class="save-row"><button class="btn-save">Guardar</button><span class="save-status"></span></div>
+      </div>`
+      )
+      .join('');
+
+    const boxes = Array.from(list.querySelectorAll('.editable-box'));
+    boxes.forEach(wireBox);
+
+    try {
+      const res = await fetch(`${API}/api/get-content?page=${PAGE}`);
+      const result = await res.json();
+      if (result.success) {
+        boxes.forEach((box) => {
+          const field = box.getAttribute('data-field');
+          const textarea = box.querySelector('textarea') as HTMLTextAreaElement;
+          if (field && result.data[field]) textarea.value = result.data[field];
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    if (location.hash) {
+      const target = document.querySelector(location.hash);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  buildTourBoxes();
 
   // ---- Site status checklist ----
   interface ChecklistGroup {

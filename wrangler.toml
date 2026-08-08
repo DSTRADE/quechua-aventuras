@@ -2,7 +2,6 @@ name = "quechua-aventuras"
 compatibility_date = "2026-08-08"
 main = "src/worker/index.ts"
 
-# Serve static files from dist directory
 [site]
 bucket = "dist"
 
@@ -11,8 +10,6 @@ binding = "CONTACT_CONFIG"
 id = "ea2e80fcfdeb42339380eec946960a90"
 preview_id = "ea2e80fcfdeb42339380eec946960a90"
 
-# Build configuration
 [build]
 command = "npm run build"
 cwd = "./"
-watch_paths = ["src/**/*.astro", "src/**/*.ts"]

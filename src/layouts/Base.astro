@@ -1,0 +1,64 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = 'Quechua Aventuras', description = 'Tours por el Perú' } = Astro.props;
+const currentLocale = Astro.url.pathname.split('/')[1] || 'es';
+
+const navLinks = {
+  es: {
+    home: '/es/',
+    about: '/es/nosotros/',
+    business: '/es/negocio/',
+    tours: '/es/tours/',
+    contact: '/es/contacto/',
+  },
+  en: {
+    home: '/en/',
+    about: '/en/about/',
+    business: '/en/business/',
+    tours: '/en/tours/',
+    contact: '/en/contact/',
+  },
+};
+
+const nav = navLinks[currentLocale as keyof typeof navLinks] || navLinks.es;
+---
+
+<!DOCTYPE html>
+<html lang={currentLocale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <title>{title} | Quechua Aventuras</title>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href={nav.home} class="logo">Quechua Aventuras</a>
+        <ul class="nav-links">
+          <li><a href={nav.home}>{currentLocale === 'es' ? 'Inicio' : 'Home'}</a></li>
+          <li><a href={nav.about}>{currentLocale === 'es' ? 'Nosotros' : 'About'}</a></li>
+          <li><a href={nav.business}>{currentLocale === 'es' ? 'Negocio' : 'Business'}</a></li>
+          <li><a href={nav.tours}>{currentLocale === 'es' ? 'Tours' : 'Tours'}</a></li>
+          <li><a href={nav.contact}>{currentLocale === 'es' ? 'Contacto' : 'Contact'}</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer>
+      <div class="footer-container">
+        <p>&copy; 2026 Quechua Aventuras. Todos los derechos reservados.</p>
+      </div>
+    </footer>
+  </body>
+</html>

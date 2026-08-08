@@ -135,6 +135,27 @@ a { color: var(--clay); }
 
 .nav-links a.nav-cta:hover { background: var(--gold-light); }
 
+/* ---------- Mobile nav toggle ---------- */
+.nav-toggle { display: none; }
+.nav-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  z-index: 210;
+}
+.nav-burger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: white;
+  border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
 /* ---------- Layout ---------- */
 main {
   max-width: var(--container);
@@ -612,11 +633,54 @@ footer p { color: rgba(255,255,255,0.6); font-size: 0.88rem; margin-bottom: 0; }
 .mb-0 { margin-bottom: 0; }
 
 @media (max-width: 768px) {
-  .nav-container { padding: 0 1.25rem; height: 66px; }
-  .nav-links { gap: 1rem; font-size: 0.85rem; }
-  .nav-links a.nav-cta { padding: 0.45rem 0.9rem; }
-  .hero { padding: 2.5rem 1.5rem; margin: -1rem -0.5rem 2.5rem; min-height: 60vh; }
+  .nav-container { padding: 0 1.25rem; height: 62px; }
+  .logo { font-size: 1.2rem; }
+  .nav-burger { display: flex; }
+  .nav-links {
+    position: absolute;
+    top: 62px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: var(--forest-dark);
+    border-bottom: 1px solid rgba(217, 165, 68, 0.25);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+  }
+  .nav-toggle:checked ~ .nav-links { max-height: 400px; }
+  .nav-links li { width: 100%; }
+  .nav-links a {
+    display: block;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 1rem;
+  }
+  .nav-links a.nav-cta {
+    border-radius: 0;
+    text-align: center;
+    background: var(--gold);
+    color: var(--forest-dark);
+    padding: 1rem 1.25rem;
+  }
+  .hero { padding: 2rem 1.25rem; margin: -1rem -0.5rem 2.5rem; min-height: 56vh; }
+  .hero-actions { flex-direction: column; align-items: stretch; }
+  .hero-actions .btn { width: 100%; }
   .tour-detail-header { flex-direction: column; }
-  main { padding: 2rem 1.25rem 3.5rem; }
+  main { padding: 1.75rem 1.25rem 3rem; }
   .panel { padding: 1.5rem; }
+  .card-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+  .tour-hero { min-height: 38vh; }
+  .tour-hero-content { padding: 1.5rem; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .itinerary-day { gap: 0.85rem; }
+  .country-checks { gap: 0.5rem; }
+  form { max-width: 100%; }
+}
+
+@media (max-width: 420px) {
+  .stat-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .step { align-items: center; }
 }

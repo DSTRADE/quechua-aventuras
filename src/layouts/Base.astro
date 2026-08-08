@@ -33,7 +33,7 @@ const nav = navLinks[currentLocale as keyof typeof navLinks] || navLinks.es;
 <html lang={currentLocale}>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛰️</text></svg>" />
     <title>{title} | Quechua Aventuras</title>
@@ -42,6 +42,10 @@ const nav = navLinks[currentLocale as keyof typeof navLinks] || navLinks.es;
     <nav class="navbar">
       <div class="nav-container">
         <a href={nav.home} class="logo">Quechua Aventuras</a>
+        <input type="checkbox" id="nav-toggle" class="nav-toggle" />
+        <label for="nav-toggle" class="nav-burger" aria-label="Menú">
+          <span></span><span></span><span></span>
+        </label>
         <ul class="nav-links">
           <li><a href={nav.home}>{currentLocale === 'es' ? 'Inicio' : 'Home'}</a></li>
           <li><a href={nav.about}>{currentLocale === 'es' ? 'Nosotros' : 'About'}</a></li>

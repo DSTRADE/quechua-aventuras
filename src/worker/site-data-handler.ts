@@ -396,6 +396,82 @@ export async function handleTranscribeVoiceNote(request: Request, env: Env): Pro
   }
 }
 
+interface SuggestedChange {
+  page: string;
+  change: string;
+}
+
+const SITE_PAGES_CONTEXT = 'Inicio, Nosotros (biografía de Luis), Filosofía (valores y FAQ), Tours (catálogo y tours individuales), Contacto, y Diseño general (colores, tipografía, layout). No incluyas el Panel de Control como página — es solo para Luis, no lo ven los clientes.';
+
+async function generateSuggestedChanges(transcript: string, env: Env): Promise<SuggestedChange[]> {
+  const prompt = `Eres un asistente que ayuda a convertir el feedback hablado de Luis (dueño de un negocio de tours de aventura en Sudamérica) en una lista de cambios concretos y accionables para su sitio web.
+
+Páginas del sitio: ${SITE_PAGES_CONTEXT}
+
+Nota de voz de Luis (ya transcrita):
+"${transcript}"
+
+Responde ÚNICAMENTE con un array JSON válido (sin markdown, sin texto adicional) con esta forma exacta:
+[{"page": "nombre de la página afectada, de la lista de arriba", "change": "descripción clara y específica de qué cambiar y por qué, en español"}]
+
+Si el feedback menciona varias cosas, sepáralas en varios objetos. Si es vago, interpreta la intención de la forma más razonable posible. Si no contiene ningún cambio accionable (ej. solo un saludo), responde con un array vacío [].`;
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'deepseek/deepseek-chat',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+    }),
+  });
+
+  if (!response.ok) throw new Error(`OpenRouter error: ${await response.text()}`);
+
+  const data = await response.json<any>();
+  const raw: string = data.choices?.[0]?.message?.content || '[]';
+  const cleaned = raw.replace(/```json\s*|```\s*/g, '').trim();
+  const parsed = JSON.parse(cleaned);
+  return Array.isArray(parsed) ? parsed : [];
+}
+
+function suggestedChangesHtml(changes: SuggestedChange[]): string {
+  if (!changes.length) return '<p style="color:#6B5F52;">No se identificaron cambios específicos en esta nota.</p>';
+  return `<ul style="padding-left:20px;">${changes
+    .map((c) => `<li style="margin-bottom:6px;"><strong>${escapeHtmlServer(c.page)}:</strong> ${escapeHtmlServer(c.change)}</li>`)
+    .join('')}</ul>`;
+}
+
+const WORKER_ORIGIN = 'https://quechua-aventuras.dstevo191.workers.dev';
+
+function brandedHtmlPage(title: string, bodyHtml: string): string {
+  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${title}</title>
+    <style>
+      body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#FBF6EC;color:#241C15;margin:0;padding:2rem 1.25rem;}
+      .box{max-width:520px;margin:2rem auto;background:white;border-radius:14px;padding:2rem;box-shadow:0 12px 32px rgba(36,28,21,0.12);}
+      h1{font-size:1.4rem;color:#1F3D33;margin-top:0;}
+      textarea{width:100%;min-height:120px;padding:0.8rem;border:1px solid rgba(36,28,21,0.15);border-radius:8px;font-family:inherit;font-size:1rem;box-sizing:border-box;}
+      button{margin-top:1rem;padding:0.8rem 1.6rem;background:#B5502C;color:white;border:none;border-radius:100px;font-weight:700;font-size:1rem;cursor:pointer;}
+      a.back{display:inline-block;margin-top:1.5rem;color:#B5502C;}
+    </style>
+    </head><body><div class="box">${bodyHtml}</div></body></html>`;
+}
+
+async function setVoiceNoteStatus(env: Env, id: string, status: string, revisionNote?: string): Promise<any | null> {
+  const raw = await env.SITE_DATA.get(`voicenote:${id}`);
+  if (!raw) return null;
+  const note = JSON.parse(raw);
+  note.status = status;
+  if (revisionNote !== undefined) note.revisionNote = revisionNote;
+  note.statusUpdatedAt = new Date().toISOString();
+  await env.SITE_DATA.put(`voicenote:${id}`, JSON.stringify(note));
+  return note;
+}
+
 export async function handleSaveVoiceNote(request: Request, env: Env): Promise<Response> {
   try {
     const body = await request.json<{ transcript: string; audioDataUrl?: string }>();
@@ -403,10 +479,20 @@ export async function handleSaveVoiceNote(request: Request, env: Env): Promise<R
       return json({ success: false, message: 'Falta el texto de la nota' }, 400);
     }
 
+    let suggestedChanges: SuggestedChange[] = [];
+    try {
+      suggestedChanges = await generateSuggestedChanges(body.transcript.trim(), env);
+    } catch (e) {
+      console.error('generate-suggested-changes failed', e);
+    }
+
     const note = {
       id: genId(),
       transcript: body.transcript.trim(),
       audioDataUrl: body.audioDataUrl || null,
+      suggestedChanges,
+      status: 'pending', // pending | approved | needs-revision
+      revisionNote: null as string | null,
       createdAt: new Date().toISOString(),
     };
 
@@ -416,12 +502,21 @@ export async function handleSaveVoiceNote(request: Request, env: Env): Promise<R
     index.push(note.id);
     await env.SITE_DATA.put('voicenotes:index', JSON.stringify(index));
 
+    const approveUrl = `${WORKER_ORIGIN}/api/voice-note-approve?id=${note.id}`;
+    const reviseUrl = `${WORKER_ORIGIN}/api/voice-note-revise-page?id=${note.id}`;
+
     await notifyAdmin(
       env,
       `Quechua Aventuras — Luis dejó una nota de voz`,
       `<h2>Nueva nota de voz (transcrita)</h2>
        <blockquote style="border-left:3px solid #D9A544;padding-left:12px;color:#241C15;">${escapeHtmlServer(note.transcript)}</blockquote>
-       <p style="font-size:12px;color:#666;">Revisa el Panel de Control para escuchar el audio original y hacer los cambios que pida.</p>`
+       <h3>Cambios sugeridos</h3>
+       ${suggestedChangesHtml(suggestedChanges)}
+       <p>
+         <a href="${approveUrl}" style="display:inline-block;background:#1F3D33;color:white;padding:10px 20px;border-radius:100px;text-decoration:none;font-weight:bold;margin-right:10px;">✅ Aprobar cambios</a>
+         <a href="${reviseUrl}" style="display:inline-block;background:#F4EBDA;color:#1F3D33;padding:10px 20px;border-radius:100px;text-decoration:none;font-weight:bold;">✏️ Pedir ajuste</a>
+       </p>
+       <p style="font-size:12px;color:#666;">Aprobar marca esto como listo para que Claude lo implemente en la próxima sesión de trabajo en el sitio — no se publica nada automáticamente en este instante.</p>`
     );
 
     return json({ success: true, note });
@@ -463,6 +558,97 @@ export async function handleDeleteVoiceNote(request: Request, env: Env): Promise
     console.error('delete-voice-note error', e);
     return json({ success: false, message: 'Error al eliminar la nota de voz' }, 500);
   }
+}
+
+// JSON endpoint used by the Panel's own approve/revise buttons
+export async function handleSetVoiceNoteStatus(request: Request, env: Env): Promise<Response> {
+  try {
+    const body = await request.json<{ id: string; status: string; revisionNote?: string }>();
+    if (!body.id || !body.status) return json({ success: false, message: 'Faltan datos' }, 400);
+
+    const note = await setVoiceNoteStatus(env, body.id, body.status, body.revisionNote);
+    if (!note) return json({ success: false, message: 'Nota no encontrada' }, 404);
+
+    if (body.status === 'needs-revision' && body.revisionNote) {
+      await notifyAdmin(
+        env,
+        `Quechua Aventuras — Luis pidió un ajuste en su nota de voz`,
+        `<h2>Ajuste pedido</h2>
+         <blockquote style="border-left:3px solid #D9A544;padding-left:12px;">${escapeHtmlServer(note.transcript)}</blockquote>
+         <p><strong>Lo que pidió ajustar:</strong> ${escapeHtmlServer(body.revisionNote)}</p>`
+      );
+    }
+
+    return json({ success: true, note });
+  } catch (e) {
+    console.error('set-voice-note-status error', e);
+    return json({ success: false, message: 'Error al actualizar el estado' }, 500);
+  }
+}
+
+// Email-link handlers — these render HTML directly since they're opened
+// by clicking a link inside the notification email, not called via fetch.
+export async function handleVoiceNoteApprovePage(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const id = url.searchParams.get('id') || '';
+  const note = await setVoiceNoteStatus(env, id, 'approved');
+
+  const bodyHtml = note
+    ? `<h1>✅ Cambios aprobados</h1><p>Quedó marcado como listo. Se implementará en la próxima sesión de trabajo en el sitio.</p><blockquote style="border-left:3px solid #D9A544;padding-left:12px;color:#6B5F52;">${escapeHtmlServer(note.transcript)}</blockquote>`
+    : `<h1>No encontramos esa nota</h1><p>Puede que ya haya sido eliminada.</p>`;
+
+  return new Response(brandedHtmlPage('Cambios aprobados', bodyHtml), {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
+}
+
+export async function handleVoiceNoteRevisePage(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const id = url.searchParams.get('id') || '';
+  const raw = await env.SITE_DATA.get(`voicenote:${id}`);
+  const note = raw ? JSON.parse(raw) : null;
+
+  const bodyHtml = note
+    ? `<h1>✏️ Pedir un ajuste</h1>
+       <p>Cuéntanos qué deberíamos entender distinto de esta nota:</p>
+       <blockquote style="border-left:3px solid #D9A544;padding-left:12px;color:#6B5F52;">${escapeHtmlServer(note.transcript)}</blockquote>
+       <form method="POST" action="${WORKER_ORIGIN}/api/voice-note-revise">
+         <input type="hidden" name="id" value="${id}" />
+         <textarea name="revisionNote" placeholder="Ej: en realidad me refería a la página de Tours, no a Inicio..." required></textarea>
+         <br/>
+         <button type="submit">Enviar ajuste</button>
+       </form>`
+    : `<h1>No encontramos esa nota</h1><p>Puede que ya haya sido eliminada.</p>`;
+
+  return new Response(brandedHtmlPage('Pedir un ajuste', bodyHtml), {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
+}
+
+export async function handleVoiceNoteReviseSubmit(request: Request, env: Env): Promise<Response> {
+  const formData = await request.formData();
+  const id = (formData.get('id') as string) || '';
+  const revisionNote = (formData.get('revisionNote') as string) || '';
+
+  const note = await setVoiceNoteStatus(env, id, 'needs-revision', revisionNote);
+
+  if (note && revisionNote) {
+    await notifyAdmin(
+      env,
+      `Quechua Aventuras — Luis pidió un ajuste en su nota de voz`,
+      `<h2>Ajuste pedido</h2>
+       <blockquote style="border-left:3px solid #D9A544;padding-left:12px;">${escapeHtmlServer(note.transcript)}</blockquote>
+       <p><strong>Lo que pidió ajustar:</strong> ${escapeHtmlServer(revisionNote)}</p>`
+    );
+  }
+
+  const bodyHtml = note
+    ? `<h1>Gracias</h1><p>Guardamos tu ajuste y avisamos para que se tenga en cuenta antes de implementar los cambios.</p>`
+    : `<h1>No encontramos esa nota</h1><p>Puede que ya haya sido eliminada.</p>`;
+
+  return new Response(brandedHtmlPage('Ajuste enviado', bodyHtml), {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
 }
 
 // ---------- Testimonials ----------

@@ -509,6 +509,28 @@ section { margin-bottom: 3.5rem; }
   margin-bottom: 0.75rem;
 }
 
+.voice-note-suggestions {
+  background: var(--cream-2);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.75rem;
+}
+.voice-note-suggestions ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+.voice-note-suggestions li { font-size: 0.88rem; color: var(--ink); margin-bottom: 0.35rem; }
+
+.voice-note-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.voice-note-revise-form {
+  margin-top: 0.85rem;
+}
+.voice-note-revise-form textarea { min-height: 80px; margin-bottom: 0.6rem; }
+
 .voice-note-remove {
   background: none;
   border: none;
@@ -517,7 +539,6 @@ section { margin-bottom: 3.5rem; }
   cursor: pointer;
   text-decoration: underline;
   padding: 0;
-  margin-top: 0.5rem;
 }
 
 /* ---------- Photo upload ---------- */

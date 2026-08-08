@@ -635,6 +635,20 @@ import Base from '../../layouts/Base.astro';
     }
   }
 
+  function statusBadge(status: string): string {
+    if (status === 'approved') return '<span class="pill" style="background:var(--forest);color:white;">✅ Listo para Claude</span>';
+    if (status === 'needs-revision') return '<span class="pill pill-clay">✏️ Necesita ajuste</span>';
+    return '<span class="pill">⏳ Pendiente de revisar</span>';
+  }
+
+  function suggestedChangesListHtml(changes: any[]): string {
+    if (!changes || !changes.length) return '';
+    return `<div class="voice-note-suggestions">
+      <div class="prompt-q" style="font-size:0.85rem;">Cambios sugeridos</div>
+      <ul>${changes.map((c) => `<li><strong>${escapeHtml(c.page)}:</strong> ${escapeHtml(c.change)}</li>`).join('')}</ul>
+    </div>`;
+  }
+
   async function loadVoiceNotes() {
     const list = document.getElementById('voice-notes-list')!;
     try {
@@ -645,13 +659,24 @@ import Base from '../../layouts/Base.astro';
           .map(
             (n: any) => `
           <div class="voice-note-card" data-id="${n.id}">
-            <div class="voice-note-date">${formatDate(n.createdAt)}</div>
+            <div class="voice-note-date">${formatDate(n.createdAt)} · ${statusBadge(n.status || 'pending')}</div>
             <p class="voice-note-text">${escapeHtml(n.transcript)}</p>
             ${n.audioDataUrl ? `<audio controls src="${n.audioDataUrl}" style="width:100%;"></audio>` : ''}
-            <button type="button" class="voice-note-remove" data-id="${n.id}">Eliminar</button>
+            ${suggestedChangesListHtml(n.suggestedChanges)}
+            ${n.revisionNote ? `<p style="font-size:0.85rem;color:var(--stone);margin-top:0.5rem;"><strong>Tu ajuste:</strong> ${escapeHtml(n.revisionNote)}</p>` : ''}
+            <div class="voice-note-actions">
+              <button type="button" class="btn-upload voice-note-approve" data-id="${n.id}">✅ Aprobar cambios</button>
+              <button type="button" class="btn-outline voice-note-revise-toggle" data-id="${n.id}" style="padding:0.55rem 1.1rem;font-size:0.82rem;">✏️ Pedir ajuste</button>
+              <button type="button" class="voice-note-remove" data-id="${n.id}">Eliminar</button>
+            </div>
+            <div class="voice-note-revise-form" id="revise-form-${n.id}" style="display:none;">
+              <textarea placeholder="¿Qué deberíamos entender distinto de esta nota?"></textarea>
+              <button type="button" class="btn-save voice-note-revise-submit" data-id="${n.id}">Enviar ajuste</button>
+            </div>
           </div>`
           )
           .join('');
+
         list.querySelectorAll('.voice-note-remove').forEach((btn) => {
           btn.addEventListener('click', async () => {
             const id = btn.getAttribute('data-id')!;
@@ -659,6 +684,43 @@ import Base from '../../layouts/Base.astro';
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ id }),
+            });
+            loadVoiceNotes();
+          });
+        });
+
+        list.querySelectorAll('.voice-note-approve').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id')!;
+            (btn as HTMLButtonElement).disabled = true;
+            await fetch(`${API}/api/voice-notes-status`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id, status: 'approved' }),
+            });
+            loadVoiceNotes();
+          });
+        });
+
+        list.querySelectorAll('.voice-note-revise-toggle').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id')!;
+            const form = document.getElementById(`revise-form-${id}`)!;
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+          });
+        });
+
+        list.querySelectorAll('.voice-note-revise-submit').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id')!;
+            const form = document.getElementById(`revise-form-${id}`)!;
+            const textarea = form.querySelector('textarea') as HTMLTextAreaElement;
+            if (!textarea.value.trim()) return;
+            (btn as HTMLButtonElement).disabled = true;
+            await fetch(`${API}/api/voice-notes-status`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id, status: 'needs-revision', revisionNote: textarea.value.trim() }),
             });
             loadVoiceNotes();
           });

@@ -17,6 +17,10 @@ import {
   handleSaveVoiceNote,
   handleGetVoiceNotes,
   handleDeleteVoiceNote,
+  handleSetVoiceNoteStatus,
+  handleVoiceNoteApprovePage,
+  handleVoiceNoteRevisePage,
+  handleVoiceNoteReviseSubmit,
 } from './site-data-handler';
 
 export interface Env {
@@ -126,6 +130,22 @@ export default {
 
     if (pathname === '/api/delete-voice-note' && request.method === 'POST') {
       return withCors(await handleDeleteVoiceNote(request, env));
+    }
+
+    if (pathname === '/api/voice-notes-status' && request.method === 'POST') {
+      return withCors(await handleSetVoiceNoteStatus(request, env));
+    }
+
+    if (pathname === '/api/voice-note-approve' && request.method === 'GET') {
+      return withCors(await handleVoiceNoteApprovePage(request, env));
+    }
+
+    if (pathname === '/api/voice-note-revise-page' && request.method === 'GET') {
+      return withCors(await handleVoiceNoteRevisePage(request, env));
+    }
+
+    if (pathname === '/api/voice-note-revise' && request.method === 'POST') {
+      return withCors(await handleVoiceNoteReviseSubmit(request, env));
     }
 
     if (pathname === '/health') {

@@ -2,15 +2,25 @@
 import Base from '../../layouts/Base.astro';
 ---
 
-<Base title="Tours">
+<Base title="Tus Tours">
   <section>
-    <h1>Nuestros Tours</h1>
-    <p>
-      Explora una selección de nuestros tours más populares alrededor de Cusco y la región de los Andes.
-      Cada tour es una experiencia única diseñada para mostrarte la verdadera belleza del Perú.
+    <h1>Tu Catálogo de Tours</h1>
+    <p style="font-size: 1.1rem; color: #666;">
+      Esta página es tu vitrina. Aquí es donde los clientes ven todos tus tours y eligen cuál quieren hacer.
     </p>
 
-    <h2>Cusco y Alrededores</h2>
+    <div class="placeholder-note">
+      <strong>📝 Nota para Luis:</strong> Los 3 tours que ves abajo son ejemplos. Aquí es donde vas a agregar
+      TODOS tus tours. Cada uno tendrá su propia página con fotos, descripción completa, itinerario, precio, etc.
+    </div>
+
+    <h2>Tours Disponibles</h2>
+    <p>
+      Estos son algunos de nuestros tours más populares alrededor de Cusco. Haz clic en cualquiera
+      para ver más detalles y fotos.
+    </p>
+
+    <h3>Alrededor de Cusco y los Andes</h3>
     <div class="card-grid">
       <a href="/es/tours/ausangate-circuit/" style="text-decoration: none; color: inherit;">
         <div class="card">
@@ -22,9 +32,9 @@ import Base from '../../layouts/Base.astro';
           <div class="card-content">
             <h3 class="card-title">Circuito Ausangate</h3>
             <p class="card-text">
-              Un trekking de 5 días alrededor de la montaña más sagrada de la región.
+              Un circuito desafiante de 5 días alrededor de la montaña más sagrada.
             </p>
-            <p style="font-size: 0.9rem; color: #999;">5 días • 60 km • Avanzado</p>
+            <p style="font-size: 0.9rem; color: #999;">⏱️ 5 días • 📍 60 km • 📈 Avanzado</p>
           </div>
         </div>
       </a>
@@ -39,9 +49,9 @@ import Base from '../../layouts/Base.astro';
           <div class="card-content">
             <h3 class="card-title">Siete Lagunas de Cusco</h3>
             <p class="card-text">
-              Un viaje de 3 días visitando las hermosas lagunas de alta montaña.
+              Un tour perfecto para ver lagunas alpinas hermosas en 3 días.
             </p>
-            <p style="font-size: 0.9rem; color: #999;">3 días • 35 km • Intermedio</p>
+            <p style="font-size: 0.9rem; color: #999;">⏱️ 3 días • 📍 35 km • 📈 Intermedio</p>
           </div>
         </div>
       </a>
@@ -56,25 +66,99 @@ import Base from '../../layouts/Base.astro';
           <div class="card-content">
             <h3 class="card-title">Salkantay Trek</h3>
             <p class="card-text">
-              Una ruta alternativa a Machu Picchu pasando por picos nevados.
+              Camina a Machu Picchu por una ruta épica que cruza picos nevados.
             </p>
-            <p style="font-size: 0.9rem; color: #999;">5 días • 50 km • Intermedio-Avanzado</p>
+            <p style="font-size: 0.9rem; color: #999;">⏱️ 5 días • 📍 50 km • 📈 Intermedio-Avanzado</p>
           </div>
         </div>
       </a>
     </div>
 
-    <div class="placeholder-note">
-      <strong>📝 Nota para Luis:</strong> Arriba hay ejemplos de tours. Aquí es donde puedes agregar
-      todos tus tours con descripciones, fotos de tus expediciones reales, y detalles específicos.
-      Haz clic en cada tour para ver cómo se verá la página de detalles.
+    <h2>¿Qué Información Necesitamos Para Cada Tour?</h2>
+    <p>
+      Para que cada página de tour sea atractiva y completa, necesitamos esta información:
+    </p>
+
+    <div style="background: #f9f7f4; padding: 2rem; border-radius: 8px;">
+      <h3>Lo Básico</h3>
+      <ul>
+        <li><strong>Nombre del tour</strong> - ¿Cómo se llama? (Ej: "Circuito Ausangate")</li>
+        <li><strong>Descripción corta</strong> - Una frase que capte la esencia</li>
+        <li><strong>Descripción larga</strong> - 1-2 párrafos contando la historia del tour</li>
+        <li><strong>Foto principal</strong> - Una foto hermosa de ti en el tour</li>
+      </ul>
+
+      <h3>Información Técnica</h3>
+      <ul>
+        <li><strong>Duración</strong> - ¿Cuántos días y noches?</li>
+        <li><strong>Distancia total</strong> - ¿Cuántos kilómetros?</li>
+        <li><strong>Elevación total</strong> - ¿Cuántos metros de subida y bajada?</li>
+        <li><strong>Altitud máxima</strong> - ¿El punto más alto en metros?</li>
+        <li><strong>Nivel de dificultad</strong> - Principiante / Intermedio / Avanzado</li>
+        <li><strong>Tamaño de grupo</strong> - ¿Máximo cuántas personas?</li>
+        <li><strong>Mejor época</strong> - ¿Cuál es la mejor temporada? (Ej: "Abril a Octubre")</li>
+      </ul>
+
+      <h3>Itinerario Día por Día</h3>
+      <ul>
+        <li>Para CADA DÍA: ¿Qué hacen? ¿Dónde caminan? ¿Dónde acampan? ¿Cuánto caminan?</li>
+        <li>Puntos interesantes: vistas, plantas, animales, história cultural</li>
+        <li>Altitud de cada campamento</li>
+      </ul>
+
+      <h3>Lo Que Está Incluido</h3>
+      <ul>
+        <li>¿Transporte? ¿Comidas? ¿Tiendas? ¿Equipo de camping?</li>
+        <li>¿Cuántos porteadores o animales de carga?</li>
+        <li>¿Guías adicionales?</li>
+      </ul>
+
+      <h3>Precio y Reserva</h3>
+      <ul>
+        <li><strong>Precio por persona</strong> - En USD</li>
+        <li><strong>Qué NO está incluido</strong> - Vuelos, hotel en Cusco, bebidas, seguros, propinas, etc.</li>
+      </ul>
+
+      <h3>Requisitos y Consideraciones</h3>
+      <ul>
+        <li>Nivel de fitness requerido</li>
+        <li>Aclimatación recomendada</li>
+        <li>Restricciones de edad</li>
+        <li>Consideraciones de salud (soroche, presión, etc.)</li>
+        <li>Equipo que el cliente debe traer</li>
+        <li>Vacunas recomendadas</li>
+      </ul>
+
+      <h3>Fotos</h3>
+      <ul>
+        <li>Mínimo 3-5 fotos tuyas en el tour</li>
+        <li>Fotos del paisaje, campamentos, vistas espectaculares</li>
+        <li>Fotos de personas (clientes anteriores si tienes, o solamente tú)</li>
+      </ul>
     </div>
 
-    <h2>¿Cómo reservar?</h2>
+    <h2>Ejemplos: Mira las Páginas de Tours</h2>
     <p>
-      Para reservar uno de nuestros tours, simplemente haz clic en el tour que te interesa
-      para obtener más detalles, o ve a nuestra <a href="/es/contacto/">página de contacto</a> para
-      hacernos preguntas o solicitar un tour personalizado.
+      Haz clic en cualquiera de los tours de arriba para ver cómo se ve la página completa de un tour.
+      Verás todos los placeholders que muestran exactamente dónde va cada información que nos des.
     </p>
+
+    <h2>¿Cuántos Tours Deberías Tener?</h2>
+    <p>
+      No hay un número mágico. Algunos guías ofrecen 3-4 tours principales, otros tienen 10+.
+      Lo importante es que cada tour esté bien documentado con:
+    </p>
+    <ul>
+      <li>✅ Una buena historia</li>
+      <li>✅ Fotos tuyas reales en el tour</li>
+      <li>✅ Información completa y precisa</li>
+      <li>✅ Precio claro</li>
+    </ul>
+
+    <div class="placeholder-note">
+      <strong>Tu Rol:</strong> Cuando estés listo, comparte la lista de tours que quieres ofrecer.
+      Para cada uno, proporciona la información de arriba. Puedes hacerlo en etapas:
+      primero 1-2 tours, después agregas más. ¡No necesitas completar todo de una vez!
+    </div>
   </section>
 </Base>

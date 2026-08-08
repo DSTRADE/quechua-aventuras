@@ -1,8 +1,4 @@
 ---
-// Root redirect page - sends visitors to Spanish version
-Astro.response.status = 301;
+// Redirect to Spanish version
+return Astro.redirect('/es/');
 ---
-
-<meta http-equiv="refresh" content="0;url=/es/" />
-
-<a href="/es/">Redirigiendo a la página en español...</a>

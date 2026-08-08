@@ -50,7 +50,11 @@ import Base from '../../layouts/Base.astro';
       <textarea id="notes" name="notes" placeholder="Cualquier detalle que quieras que tengamos en cuenta — o deja en blanco y lo investigamos por ti."></textarea>
 
       <label for="photos">Fotos del tour (opcional)</label>
-      <input type="file" id="photos" name="photos" accept="image/*" multiple />
+      <div class="file-input">
+        <input type="file" id="photos" name="photos" accept="image/*" multiple />
+        <span class="file-input-btn">📁 Elegir archivos</span>
+        <span class="file-input-name">Ningún archivo seleccionado</span>
+      </div>
       <div class="prompt-hint" style="margin-top: 0.4rem;">No hace falta tenerlas ahora — puedes agregar el tour sin fotos y subirlas más adelante, no las necesitamos para armar la página.</div>
 
       <button type="submit" id="submit-btn">Agregar tour con ayuda de IA</button>
@@ -314,6 +318,13 @@ import Base from '../../layouts/Base.astro';
   const form = document.getElementById('tour-form') as HTMLFormElement;
   const statusEl = document.getElementById('tour-form-status')!;
   const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const photosInput = document.getElementById('photos') as HTMLInputElement;
+  const photosFileName = form.querySelector('.file-input-name') as HTMLElement;
+
+  photosInput.addEventListener('change', () => {
+    const n = photosInput.files?.length || 0;
+    photosFileName.textContent = n === 0 ? 'Ningún archivo seleccionado' : n === 1 ? photosInput.files![0].name : `${n} archivos seleccionados`;
+  });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -338,6 +349,7 @@ import Base from '../../layouts/Base.astro';
         statusEl.style.color = 'var(--forest)';
         statusEl.innerHTML = `✓ "${result.tour.name}" agregado con éxito. Revisa el catálogo en vivo abajo y corrige cualquier detalle que no sea exacto.`;
         form.reset();
+        photosFileName.textContent = 'Ningún archivo seleccionado';
         loadTours();
       } else {
         statusEl.style.color = 'var(--clay)';

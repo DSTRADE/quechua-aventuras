@@ -170,7 +170,11 @@ import Base from '../../layouts/Base.astro';
     <div class="photo-upload" data-photo-page="home-luis">
       <div class="prompt-hint">Fotos tuyas guiando, en la montaña, con clientes — lo que muestre quién eres como guía.</div>
       <div class="photo-upload-controls">
-        <input type="file" class="photo-file-input" accept="image/*" multiple />
+        <div class="file-input">
+          <input type="file" class="photo-file-input" accept="image/*" multiple />
+          <span class="file-input-btn">📁 Elegir archivos</span>
+          <span class="file-input-name">Ningún archivo seleccionado</span>
+        </div>
         <input type="text" class="photo-caption-input" placeholder="Descripción breve (opcional)" />
         <button type="button" class="btn-upload">Subir foto(s)</button>
       </div>
@@ -182,7 +186,11 @@ import Base from '../../layouts/Base.astro';
     <div class="photo-upload" data-photo-page="home-favorites">
       <div class="prompt-hint">Paisajes, rutas, momentos con clientes — cualquier foto que te encantaría ver en el sitio, aunque no salgas tú.</div>
       <div class="photo-upload-controls">
-        <input type="file" class="photo-file-input" accept="image/*" multiple />
+        <div class="file-input">
+          <input type="file" class="photo-file-input" accept="image/*" multiple />
+          <span class="file-input-btn">📁 Elegir archivos</span>
+          <span class="file-input-name">Ningún archivo seleccionado</span>
+        </div>
         <input type="text" class="photo-caption-input" placeholder="Descripción breve (opcional)" />
         <button type="button" class="btn-upload">Subir foto(s)</button>
       </div>
@@ -277,10 +285,16 @@ import Base from '../../layouts/Base.astro';
   function initPhotoUpload(container: HTMLElement) {
     const page = container.getAttribute('data-photo-page')!;
     const fileInput = container.querySelector('.photo-file-input') as HTMLInputElement;
+    const fileName = container.querySelector('.file-input-name') as HTMLElement;
     const captionInput = container.querySelector('.photo-caption-input') as HTMLInputElement;
     const uploadBtn = container.querySelector('.btn-upload') as HTMLButtonElement;
     const status = container.querySelector('.photo-status') as HTMLElement;
     const grid = container.querySelector('.photo-grid') as HTMLElement;
+
+    fileInput.addEventListener('change', () => {
+      const n = fileInput.files?.length || 0;
+      fileName.textContent = n === 0 ? 'Ningún archivo seleccionado' : n === 1 ? fileInput.files![0].name : `${n} archivos seleccionados`;
+    });
 
     async function loadPhotos() {
       try {
@@ -338,6 +352,7 @@ import Base from '../../layouts/Base.astro';
       }
       status.textContent = okCount === files.length ? `✓ ${okCount} foto(s) subida(s)` : `Se subieron ${okCount} de ${files.length} foto(s)`;
       fileInput.value = '';
+      fileName.textContent = 'Ningún archivo seleccionado';
       captionInput.value = '';
       uploadBtn.disabled = false;
       loadPhotos();

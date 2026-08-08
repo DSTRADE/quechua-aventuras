@@ -414,6 +414,51 @@ section { margin-bottom: 3.5rem; }
 .btn-save:hover { background: var(--forest-dark); }
 .btn-save:disabled { opacity: 0.6; cursor: default; }
 
+/* ---------- Custom file input (browser file-picker text can't be translated) ---------- */
+.file-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1 1 260px;
+  border: 1px solid rgba(36,28,21,0.15);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.6rem;
+  background: white;
+}
+
+.file-input input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.file-input-btn {
+  flex-shrink: 0;
+  background: var(--forest);
+  color: white;
+  padding: 0.55rem 1.1rem;
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.file-input-name {
+  font-size: 0.85rem;
+  color: var(--stone);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ---------- Photo upload ---------- */
 .photo-upload {
   background: white;

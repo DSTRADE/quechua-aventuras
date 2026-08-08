@@ -21,7 +21,7 @@ interface ContactInquiry {
 }
 
 // Send email via Resend
-async function sendEmail(
+export async function sendEmail(
   env: any,
   to: string,
   subject: string,

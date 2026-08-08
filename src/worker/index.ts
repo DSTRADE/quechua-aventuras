@@ -11,6 +11,8 @@ import {
   handleSubmitTestimonial,
   handleGetTestimonials,
   handleDeleteTestimonial,
+  handleGetSiteSettings,
+  handleSaveSiteSettings,
 } from './site-data-handler';
 
 export interface Env {
@@ -95,6 +97,14 @@ export default {
 
     if (pathname === '/api/delete-testimonial' && request.method === 'POST') {
       return withCors(await handleDeleteTestimonial(request, env));
+    }
+
+    if (pathname === '/api/site-settings' && request.method === 'GET') {
+      return withCors(await handleGetSiteSettings(request, env));
+    }
+
+    if (pathname === '/api/site-settings' && request.method === 'POST') {
+      return withCors(await handleSaveSiteSettings(request, env));
     }
 
     if (pathname === '/health') {

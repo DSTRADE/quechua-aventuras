@@ -1,8 +1,25 @@
 // Handles: editable page content (save/get) and AI-assisted tour submissions
 
+import { sendEmail } from './contact-handler';
+
 export interface Env {
   SITE_DATA: KVNamespace;
   OPENROUTER_API_KEY: string;
+  RESEND_API_KEY: string;
+}
+
+const ADMIN_EMAIL = 'dstevo191@gmail.com';
+
+function escapeHtmlServer(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] || c));
+}
+
+async function notifyAdmin(env: Env, subject: string, html: string): Promise<void> {
+  try {
+    await sendEmail(env, ADMIN_EMAIL, subject, html);
+  } catch (e) {
+    console.error('admin notification failed', e);
+  }
 }
 
 // ---------- Editable content boxes (nosotros, negocio, etc.) ----------
@@ -14,6 +31,18 @@ export async function handleSaveContent(request: Request, env: Env): Promise<Res
       return json({ success: false, message: 'Faltan datos' }, 400);
     }
     await env.SITE_DATA.put(`content:${body.page}:${body.field}`, body.value || '');
+
+    if (body.value && body.value.trim()) {
+      await notifyAdmin(
+        env,
+        `Quechua Aventuras — Luis guardó texto (${body.page})`,
+        `<h2>Luis guardó contenido</h2>
+         <p><strong>Página:</strong> ${escapeHtmlServer(body.page)}</p>
+         <p><strong>Campo:</strong> ${escapeHtmlServer(body.field)}</p>
+         <blockquote style="border-left:3px solid #D9A544;padding-left:12px;color:#241C15;">${escapeHtmlServer(body.value).replace(/\n/g, '<br>').slice(0, 1000)}</blockquote>`
+      );
+    }
+
     return json({ success: true, message: 'Guardado' });
   } catch (e) {
     console.error('save-content error', e);
@@ -199,6 +228,16 @@ export async function handleSubmitTour(request: Request, env: Env): Promise<Resp
       await env.SITE_DATA.put('tours:index', JSON.stringify(index));
     }
 
+    await notifyAdmin(
+      env,
+      `Quechua Aventuras — Luis agregó un tour: ${tour.name}`,
+      `<h2>Nuevo tour agregado</h2>
+       <p><strong>Nombre:</strong> ${escapeHtmlServer(tour.name)}</p>
+       <p><strong>País(es):</strong> ${escapeHtmlServer(tour.countries.join(', '))}</p>
+       <p><strong>Precio:</strong> $${escapeHtmlServer(tour.price)}</p>
+       <p><strong>Fotos incluidas:</strong> ${photos.length}</p>`
+    );
+
     return json({ success: true, tour });
   } catch (e) {
     console.error('submit-tour error', e);
@@ -272,6 +311,15 @@ export async function handleUploadPhoto(request: Request, env: Env): Promise<Res
     const index: string[] = indexRaw ? JSON.parse(indexRaw) : [];
     index.push(id);
     await env.SITE_DATA.put(indexKey, JSON.stringify(index));
+
+    await notifyAdmin(
+      env,
+      `Quechua Aventuras — Luis subió una foto (${page})`,
+      `<h2>Nueva foto subida</h2>
+       <p><strong>Página:</strong> ${escapeHtmlServer(page)}</p>
+       <p><strong>Archivo:</strong> ${escapeHtmlServer(file.name)}</p>
+       ${caption ? `<p><strong>Descripción:</strong> ${escapeHtmlServer(caption)}</p>` : ''}`
+    );
 
     return json({ success: true, photo });
   } catch (e) {
@@ -353,6 +401,16 @@ export async function handleSubmitTestimonial(request: Request, env: Env): Promi
     index.push(testimonial.id);
     await env.SITE_DATA.put('testimonials:index', JSON.stringify(index));
 
+    await notifyAdmin(
+      env,
+      `Quechua Aventuras — Luis agregó un testimonio de ${testimonial.authorName}`,
+      `<h2>Nuevo testimonio</h2>
+       <p><strong>Cliente:</strong> ${escapeHtmlServer(testimonial.authorName)}</p>
+       ${testimonial.authorOrigin ? `<p><strong>Origen:</strong> ${escapeHtmlServer(testimonial.authorOrigin)}</p>` : ''}
+       ${testimonial.tourName ? `<p><strong>Tour:</strong> ${escapeHtmlServer(testimonial.tourName)}</p>` : ''}
+       <blockquote style="border-left:3px solid #D9A544;padding-left:12px;color:#241C15;">${escapeHtmlServer(testimonial.text)}</blockquote>`
+    );
+
     return json({ success: true, testimonial });
   } catch (e) {
     console.error('submit-testimonial error', e);
@@ -409,5 +467,30 @@ export async function handleDeleteTour(request: Request, env: Env): Promise<Resp
   } catch (e) {
     console.error('delete-tour error', e);
     return json({ success: false, message: 'Error al eliminar' }, 500);
+  }
+}
+
+// ---------- Site settings (publish / draft toggle) ----------
+
+export async function handleGetSiteSettings(_request: Request, env: Env): Promise<Response> {
+  try {
+    const raw = await env.SITE_DATA.get('site-settings');
+    const settings = raw ? JSON.parse(raw) : { published: false };
+    return json({ success: true, settings });
+  } catch (e) {
+    console.error('get-site-settings error', e);
+    return json({ success: false, message: 'Error al cargar la configuración' }, 500);
+  }
+}
+
+export async function handleSaveSiteSettings(request: Request, env: Env): Promise<Response> {
+  try {
+    const body = await request.json<{ published: boolean }>();
+    const settings = { published: !!body.published, updatedAt: new Date().toISOString() };
+    await env.SITE_DATA.put('site-settings', JSON.stringify(settings));
+    return json({ success: true, settings });
+  } catch (e) {
+    console.error('save-site-settings error', e);
+    return json({ success: false, message: 'Error al guardar la configuración' }, 500);
   }
 }

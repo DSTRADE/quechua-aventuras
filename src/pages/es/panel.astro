@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 ---
 
-<Base title="Panel de Control">
+<Base title="Panel de Control" internal={true}>
   <div class="hero" style="min-height: 34vh; background-image: url('https://images.unsplash.com/photo-1533130061792-64b345e4a833?auto=format&fit=crop&w=1800&q=80');">
     <div class="hero-content">
       <span class="eyebrow">Tu espacio</span>
@@ -13,6 +13,7 @@ import Base from '../../layouts/Base.astro';
 
   <nav class="jump-nav" aria-label="Ir a sección">
     <a href="#estado">📊 Estado</a>
+    <a href="#publicacion">🚀 Publicar</a>
     <a href="#diseno">🎨 Diseño</a>
     <a href="#paginas">📄 Páginas</a>
     <a href="#tours">🥾 Tours</a>
@@ -34,9 +35,33 @@ import Base from '../../layouts/Base.astro';
       <span class="eyebrow">Progreso</span>
       <h2>Estado del sitio</h2>
     </div>
-    <p>Un vistazo rápido a qué falta completar. Se actualiza solo a medida que vas guardando texto, subiendo fotos y agregando tours.</p>
+    <p>Un vistazo rápido a qué falta completar. Toca cada categoría para ver el detalle.</p>
+
+    <div class="status-overall">
+      <div class="status-overall-head">
+        <span id="status-overall-label">Cargando...</span>
+        <span id="status-overall-pct" class="status-progress"></span>
+      </div>
+      <div class="status-bar"><div id="status-overall-fill" class="status-bar-fill" style="width:0%"></div></div>
+    </div>
+
     <div id="status-checklist" class="status-checklist">
       <p class="photo-empty">Cargando estado...</p>
+    </div>
+  </section>
+
+  <section id="publicacion">
+    <div class="section-head">
+      <span class="eyebrow">Publicación</span>
+      <h2>¿El sitio está listo para tus clientes?</h2>
+    </div>
+    <p>Mientras esto esté en "Borrador", tus páginas muestran un aviso de que el sitio está en construcción. Cambia a "Publicado" cuando estés conforme con el contenido y quieras compartir el link con clientes reales — puedes volver a ponerlo en borrador cuando quieras.</p>
+    <div class="publish-toggle-row">
+      <label class="switch">
+        <input type="checkbox" id="published-toggle" />
+        <span class="switch-slider"></span>
+      </label>
+      <span id="published-label" class="publish-status-label">Cargando...</span>
     </div>
   </section>
 
@@ -306,19 +331,21 @@ import Base from '../../layouts/Base.astro';
   function statusGroupHtml(title: string, done: number, total: number, itemsHtml: string): string {
     const complete = total > 0 && done >= total;
     return `
-      <div class="status-group">
-        <div class="status-group-head">
-          <h4>${title}</h4>
+      <details class="status-group">
+        <summary>
+          <span class="status-group-title">${title}</span>
           <span class="status-progress ${complete ? 'complete' : ''}">${done}/${total}</span>
-        </div>
-        <div class="status-bar"><div class="status-bar-fill ${complete ? 'complete' : ''}" style="width:${total ? Math.round((done / total) * 100) : 0}%"></div></div>
+          <div class="status-bar status-bar-mini"><div class="status-bar-fill ${complete ? 'complete' : ''}" style="width:${total ? Math.round((done / total) * 100) : 0}%"></div></div>
+        </summary>
         <div class="status-items">${itemsHtml}</div>
-      </div>`;
+      </details>`;
   }
 
   async function buildChecklist() {
     const container = document.getElementById('status-checklist')!;
     const groupsHtml: string[] = [];
+    let totalDone = 0;
+    let totalAll = 0;
 
     for (const group of CHECKLIST) {
       if (group.kind === 'text' && group.page && group.fields) {
@@ -334,8 +361,11 @@ import Base from '../../layouts/Base.astro';
             })
             .join('');
           groupsHtml.push(statusGroupHtml(group.label, doneFields.length, group.fields.length, itemsHtml));
+          totalDone += doneFields.length;
+          totalAll += group.fields.length;
         } catch {
           groupsHtml.push(statusGroupHtml(group.label, 0, group.fields.length, '<p class="photo-empty">No se pudo cargar.</p>'));
+          totalAll += group.fields.length;
         }
       } else if (group.kind === 'count' && group.countUrl && group.countKey) {
         try {
@@ -345,14 +375,68 @@ import Base from '../../layouts/Base.astro';
           const done = count > 0 ? 1 : 0;
           const itemsHtml = `<div class="status-item ${done ? 'done' : ''}"><span class="status-dot">${done ? '✓' : ''}</span>${count} ${group.countLabel}</div>`;
           groupsHtml.push(statusGroupHtml(group.label, done, 1, itemsHtml));
+          totalDone += done;
+          totalAll += 1;
         } catch {
           groupsHtml.push(statusGroupHtml(group.label, 0, 1, '<p class="photo-empty">No se pudo cargar.</p>'));
+          totalAll += 1;
         }
       }
     }
 
     container.innerHTML = groupsHtml.join('');
+
+    const pct = totalAll ? Math.round((totalDone / totalAll) * 100) : 0;
+    const overallLabel = document.getElementById('status-overall-label')!;
+    const overallPct = document.getElementById('status-overall-pct')!;
+    const overallFill = document.getElementById('status-overall-fill')!;
+    overallLabel.textContent = pct >= 100 ? '🎉 ¡Todo completo!' : `${totalDone}/${totalAll} elementos completados`;
+    overallPct.textContent = `${pct}%`;
+    overallPct.classList.toggle('complete', pct >= 100);
+    overallFill.style.width = `${pct}%`;
+    overallFill.classList.toggle('complete', pct >= 100);
   }
 
   buildChecklist();
+
+  // ---- Publish / draft toggle ----
+  const publishToggle = document.getElementById('published-toggle') as HTMLInputElement;
+  const publishLabel = document.getElementById('published-label')!;
+
+  function renderPublishLabel(published: boolean) {
+    publishLabel.textContent = published ? '✓ Publicado — visible para clientes' : '🚧 Borrador — muestra aviso de construcción';
+  }
+
+  async function loadPublishStatus() {
+    try {
+      const res = await fetch(`${API}/api/site-settings`);
+      const result = await res.json();
+      const published = !!(result.success && result.settings && result.settings.published);
+      publishToggle.checked = published;
+      renderPublishLabel(published);
+    } catch {
+      publishLabel.textContent = 'No se pudo cargar el estado.';
+    }
+  }
+
+  publishToggle.addEventListener('change', async () => {
+    publishLabel.textContent = 'Guardando...';
+    try {
+      const res = await fetch(`${API}/api/site-settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ published: publishToggle.checked }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        renderPublishLabel(publishToggle.checked);
+      } else {
+        publishLabel.textContent = 'Error al guardar';
+      }
+    } catch {
+      publishLabel.textContent = 'Error al guardar';
+    }
+  });
+
+  loadPublishStatus();
 </script>

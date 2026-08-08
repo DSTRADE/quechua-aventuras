@@ -4,9 +4,10 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
+  internal?: boolean;
 }
 
-const { title = 'Quechua Aventuras', description = 'Trekking y tours de aventura por Sudamérica' } = Astro.props;
+const { title = 'Quechua Aventuras', description = 'Trekking y tours de aventura por Sudamérica', internal = false } = Astro.props;
 const currentLocale = Astro.url.pathname.split('/')[1] || 'es';
 
 const navLinks = {
@@ -59,9 +60,24 @@ const nav = navLinks[currentLocale as keyof typeof navLinks] || navLinks.es;
       </div>
     </nav>
 
+    {!internal && <div id="draft-banner" class="draft-banner" style="display:none;">🚧 Este sitio todavía está en construcción — el contenido es de muestra mientras Luis lo completa.</div>}
+
     <main>
       <slot />
     </main>
+
+    {!internal && (
+      <script define:vars={{ API: 'https://quechua-aventuras.dstevo191.workers.dev' }}>
+        fetch(`${API}/api/site-settings`)
+          .then((r) => r.json())
+          .then((res) => {
+            const published = !!(res.success && res.settings && res.settings.published);
+            const banner = document.getElementById('draft-banner');
+            if (banner) banner.style.display = published ? 'none' : 'block';
+          })
+          .catch(() => {});
+      </script>
+    )}
 
     <footer>
       <div class="footer-container">

@@ -8,11 +8,12 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "astro": "^4.11.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
     "@astrojs/react": "^3.1.0",
-    "nodemailer": "^6.9.13"
+    "@cloudflare/kv-asset-handler": "^0.5.0",
+    "astro": "^4.11.0",
+    "nodemailer": "^6.9.13",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.0"
